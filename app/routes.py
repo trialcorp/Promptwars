@@ -8,17 +8,18 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, jsonify, render_template, request
 from flask import Response as FlaskResponse
 
 from app.config import Config
-from app.security import check_rate_limit, sanitize_input
+from app.constants import DEFAULT_FEED_LIMIT, DEFAULT_TRANSLATE_TARGET, MAX_FEED_LIMIT
 from app.pipeline import process_report
-from app.services.logging_client import logger
-from app.services.translate import translate_text, TRANSLATE_AVAILABLE
-from app.services.firestore_client import get_recent_reports, get_zone_stats, FIRESTORE_AVAILABLE
-from app.services.storage import GCS_AVAILABLE
+from app.security import check_rate_limit, sanitize_input
+from app.services.firestore_client import FIRESTORE_AVAILABLE, get_recent_reports, get_zone_stats
 from app.services.gemini import gemini_client
+from app.services.logging_client import logger
+from app.services.storage import GCS_AVAILABLE
+from app.services.translate import TRANSLATE_AVAILABLE, translate_text
 
 api = Blueprint("api", __name__)
 
@@ -70,7 +71,7 @@ def translate_endpoint() -> tuple[FlaskResponse, int] | FlaskResponse:
     """Translate text using Google Cloud Translate v3."""
     data: dict = request.get_json(silent=True) or {}
     text: str = sanitize_input(data.get("text", ""))
-    target: str = data.get("target", "hi")
+    target: str = data.get("target", DEFAULT_TRANSLATE_TARGET)
 
     if not text:
         return jsonify({"error": "No text provided."}), 400
@@ -85,7 +86,11 @@ def translate_endpoint() -> tuple[FlaskResponse, int] | FlaskResponse:
 @api.route("/feed", methods=["GET"])
 def live_feed() -> FlaskResponse:
     """Retrieve recent crowd reports — the live venue pulse."""
-    limit = min(int(request.args.get("limit", 20)), 50)
+    try:
+        limit = min(int(request.args.get("limit", DEFAULT_FEED_LIMIT)), MAX_FEED_LIMIT)
+    except (ValueError, TypeError):
+        limit = DEFAULT_FEED_LIMIT
+
     reports = get_recent_reports(limit)
     return jsonify({"reports": reports, "count": len(reports)})
 

@@ -9,27 +9,42 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from app.config import Config
 from app.analysis import analyze_report
+from app.cache import cache_get, cache_key, cache_set
+from app.config import Config
+from app.models.enums import CrowdDensity, ReportType, Severity
 from app.models.report import CrowdReport
+from app.services.firestore_client import FIRESTORE_AVAILABLE, store_report
 from app.services.logging_client import logger
+from app.services.storage import GCS_AVAILABLE, store_report_gcs
 from app.services.translate import (
-    detect_language,
-    translate_text,
-    translate_json_values,
     TRANSLATE_AVAILABLE,
+    detect_language,
+    translate_json_values,
+    translate_text,
 )
-from app.services.firestore_client import store_report, FIRESTORE_AVAILABLE
-from app.services.storage import store_report_gcs, GCS_AVAILABLE
-from app.cache import cache_key, cache_get, cache_set
 
 
 def process_report(user_input: str) -> tuple[dict[str, Any], bool]:
     """Process a crowd report through the full analysis pipeline.
 
+    Steps:
+        1. Detect input language
+        2. Check cache
+        3. Translate to English (if needed)
+        4. AI analysis (always in English)
+        5. Translate response back to user's language
+        6. Add language metadata
+        7. Cache the result
+        8. Persist to Cloud Storage
+        9. Store metadata in Firestore
+
+    Args:
+        user_input: Raw crowd report text from the user.
+
     Returns:
-        A tuple of (result_dict, is_cached).
-        result_dict contains the AI analysis or an error.
+        A tuple of ``(result_dict, is_cached)``.
+        ``result_dict`` contains the AI analysis or an error.
     """
     # Step 1: Detect input language
     detected_lang = detect_language(user_input)
@@ -76,11 +91,11 @@ def process_report(user_input: str) -> tuple[dict[str, Any], bool]:
         report = CrowdReport(
             input_text=user_input,
             detected_language=detected_lang,
-            report_type=result.get("report_type", "GENERAL"),
-            severity=result.get("severity", "INFO"),
+            report_type=result.get("report_type", ReportType.GENERAL),
+            severity=result.get("severity", Severity.INFO),
             title=result.get("title", ""),
             location_in_venue=result.get("location_in_venue", ""),
-            crowd_density=result.get("crowd_density", "UNKNOWN"),
+            crowd_density=result.get("crowd_density", CrowdDensity.UNKNOWN),
         )
         store_report(report.to_firestore_dict())
 

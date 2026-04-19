@@ -1,4 +1,8 @@
-"""Gemini AI analysis for crowd report classification and venue intelligence."""
+"""Gemini AI analysis for crowd report classification and venue intelligence.
+
+Sends user-submitted crowd reports to Gemini with a structured JSON schema
+and retries on transient failures or malformed responses.
+"""
 
 from __future__ import annotations
 
@@ -9,6 +13,13 @@ from typing import Any
 from google.genai import types as genai_types
 
 from app.config import Config
+from app.constants import (
+    AI_MAX_OUTPUT_TOKENS,
+    AI_RETRY_DELAY_SEC,
+    AI_TEMPERATURE,
+    MAX_AI_RETRIES,
+)
+from app.exceptions import AIAnalysisError
 from app.services.gemini import gemini_client
 from app.services.logging_client import logger
 
@@ -49,12 +60,13 @@ RULES:
 - Be practical and concise — attendees are checking on their phones.
 """
 
-MAX_RETRIES: int = 2
-RETRY_DELAY_SECONDS: float = 1.0
-
 
 def _extract_json(raw: str) -> str:
-    """Extract the JSON object from a potentially messy AI response."""
+    """Extract the outermost JSON object from a potentially messy AI response.
+
+    Finds the first ``{`` and last ``}`` to handle cases where the model
+    wraps its response in markdown fences or preamble text.
+    """
     start_idx = raw.find("{")
     end_idx = raw.rfind("}")
     if start_idx != -1 and end_idx != -1:
@@ -69,7 +81,11 @@ def analyze_report(user_input: str) -> dict[str, Any]:
         user_input: The crowd report text (in English).
 
     Returns:
-        Structured analysis dict, or dict with 'error' key on failure.
+        Structured analysis dict with an ``_meta`` key containing
+        processing metadata.
+
+    Raises:
+        AIAnalysisError: If all retry attempts are exhausted.
     """
     if gemini_client is None:
         logger.error("Gemini client not initialized")
@@ -78,18 +94,19 @@ def analyze_report(user_input: str) -> dict[str, Any]:
     start = time.time()
     last_error = ""
 
-    for attempt in range(MAX_RETRIES + 1):
+    for attempt in range(MAX_AI_RETRIES + 1):
         try:
             response = gemini_client.models.generate_content(
                 model=Config.MODEL_ID,
                 config=genai_types.GenerateContentConfig(
                     system_instruction=SYSTEM_PROMPT,
-                    temperature=0.2,
-                    max_output_tokens=2048,
+                    temperature=AI_TEMPERATURE,
+                    max_output_tokens=AI_MAX_OUTPUT_TOKENS,
                 ),
                 contents=user_input,
             )
-            raw = _extract_json(response.text.strip())
+            raw_text = response.text.strip()
+            raw = _extract_json(raw_text)
             result: dict[str, Any] = json.loads(raw)
 
             elapsed = round(time.time() - start, 2)
@@ -103,12 +120,17 @@ def analyze_report(user_input: str) -> dict[str, Any]:
 
         except json.JSONDecodeError as exc:
             last_error = f"JSON parse error: {exc}"
-            logger.warning("Attempt %d — %s", attempt + 1, last_error)
+            logger.warning(
+                "Attempt %d — %s | Raw response (truncated): %.200s",
+                attempt + 1,
+                last_error,
+                raw_text if "raw_text" in dir() else "<unavailable>",
+            )
         except Exception as exc:
             last_error = str(exc)
             logger.warning("Attempt %d — AI error: %s", attempt + 1, last_error)
 
-        if attempt < MAX_RETRIES:
-            time.sleep(RETRY_DELAY_SECONDS)
+        if attempt < MAX_AI_RETRIES:
+            time.sleep(AI_RETRY_DELAY_SEC)
 
-    return {"error": f"AI analysis failed after {MAX_RETRIES + 1} attempts. {last_error}"}
+    return {"error": f"AI analysis failed after {MAX_AI_RETRIES + 1} attempts. {last_error}"}

@@ -233,9 +233,9 @@
   <main role="main">
     <!-- Tabs -->
     <div class="tabs" role="tablist">
-      <button class="tab-btn active" role="tab" onclick="switchTab('report')" aria-selected="true">📝 Report</button>
-      <button class="tab-btn" role="tab" onclick="switchTab('feed')" aria-selected="false">📡 Live Feed</button>
-      <button class="tab-btn" role="tab" onclick="switchTab('about')" aria-selected="false">ℹ️ About</button>
+      <button class="tab-btn active" role="tab" onclick="switchTab('report', event)" aria-selected="true">📝 Report</button>
+      <button class="tab-btn" role="tab" onclick="switchTab('feed', event)" aria-selected="false">📡 Live Feed</button>
+      <button class="tab-btn" role="tab" onclick="switchTab('about', event)" aria-selected="false">ℹ️ About</button>
     </div>
 
     <!-- Report Tab -->
@@ -304,19 +304,19 @@
   </main>
 
   <script>
-    const EXAMPLES = [];
+    const EXAMPLES = [];  // Populated by setExamples() below
     const input = document.getElementById('main-input');
     const loading = document.getElementById('loading');
     const results = document.getElementById('results');
     const errorDiv = document.getElementById('error');
 
     // Tab switching
-    function switchTab(tab) {
+    function switchTab(tab, e) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
       document.getElementById('tab-' + tab).classList.add('active');
-      event.target.classList.add('active');
-      event.target.setAttribute('aria-selected', 'true');
+      e.target.classList.add('active');
+      e.target.setAttribute('aria-selected', 'true');
       if (tab === 'feed') loadFeed();
     }
 
