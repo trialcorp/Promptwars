@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VenueFlow — Crowd Intelligence for Live Events</title>
+  <meta name="description" content="AI-powered crowd intelligence platform for stadium events. Report what you see, help everyone." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --surface: #111827;
+      --surface-2: #1a2235;
+      --card: #1e293b;
+      --border: #1e2a3a;
+      --text: #e2e8f0;
+      --text-muted: #8896ab;
+      --accent: #06b6d4;
+      --accent-glow: rgba(6,182,212,0.12);
+      --critical: #ef4444;
+      --high: #f97316;
+      --moderate: #eab308;
+      --low: #22c55e;
+      --info: #3b82f6;
+      --crowd: #8b5cf6;
+      --food: #f59e0b;
+      --parking: #6366f1;
+      --weather: #0ea5e9;
+      --safety: #ef4444;
+      --radius: 12px;
+      --font: 'DM Sans', system-ui, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.6; }
+
+    .skip-link { position: absolute; left: -9999px; top: 0; background: var(--accent); color: var(--bg); padding: 8px 16px; z-index: 1000; font-weight: 600; }
+    .skip-link:focus { left: 0; }
+
+    header {
+      border-bottom: 1px solid var(--border); padding: 14px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--surface);
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), var(--crowd));
+      display: grid; place-items: center; font-size: 16px; font-weight: 700; color: #fff;
+    }
+    header h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; }
+    header h1 span { color: var(--accent); }
+    .header-badge { font-size: 0.68rem; color: var(--text-muted); background: var(--surface-2); padding: 3px 8px; border-radius: 12px; border: 1px solid var(--border); }
+
+    .lang-select {
+      background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 6px 10px; font-family: var(--font); font-size: 0.82rem;
+    }
+
+    main { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 4px; margin-bottom: 24px; background: var(--surface); border-radius: 10px; padding: 4px; border: 1px solid var(--border); }
+    .tab-btn {
+      flex: 1; padding: 10px 16px; font-family: var(--font); font-size: 0.85rem;
+      font-weight: 600; background: transparent; color: var(--text-muted);
+      border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s;
+    }
+    .tab-btn.active { background: var(--accent); color: var(--bg); }
+    .tab-btn:hover:not(.active) { color: var(--text); }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Report Section */
+    .input-section {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px; margin-bottom: 20px;
+    }
+    .input-section label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.95rem; }
+    .input-section .hint { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 14px; }
+    .hint em { color: var(--accent); font-style: normal; }
+
+    textarea {
+      width: 100%; min-height: 120px; padding: 14px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-family: var(--font);
+      font-size: 0.92rem; resize: vertical; line-height: 1.6; transition: border-color 0.2s;
+    }
+    textarea:focus { outline: none; border-color: var(--accent); }
+    textarea::placeholder { color: var(--text-muted); }
+
+    .actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+    button {
+      font-family: var(--font); font-size: 0.88rem; font-weight: 600;
+      border: none; border-radius: 8px; cursor: pointer; padding: 10px 22px; transition: all 0.2s;
+    }
+    .btn-primary { background: var(--accent); color: var(--bg); }
+    .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-secondary { background: var(--surface-2); color: var(--text-muted); border: 1px solid var(--border); }
+    .btn-secondary:hover { color: var(--text); border-color: var(--text-muted); }
+
+    .examples { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+    .example-chip {
+      font-family: var(--font); font-size: 0.74rem; padding: 6px 12px;
+      background: var(--accent-glow); color: var(--accent);
+      border: 1px solid rgba(6,182,212,0.25); border-radius: 20px;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .example-chip:hover { background: rgba(6,182,212,0.25); }
+
+    /* Loading */
+    .loading { display: none; text-align: center; padding: 40px 24px; }
+    .loading.active { display: block; }
+    .spinner { width: 36px; height: 36px; margin: 0 auto 14px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading p { color: var(--text-muted); font-size: 0.85rem; }
+
+    /* Results */
+    .results { display: none; }
+    .results.active { display: block; }
+
+    .result-banner {
+      padding: 18px 22px; border-radius: var(--radius);
+      margin-bottom: 16px; border-left: 4px solid; display: flex; flex-direction: column; gap: 6px;
+    }
+    .result-header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .badge {
+      font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+      padding: 3px 9px; border-radius: 6px; letter-spacing: 0.05em;
+      white-space: nowrap; font-family: var(--mono);
+    }
+    .type-badge { background: var(--surface-2); color: var(--accent); border: 1px solid var(--border); }
+    .sev-CRITICAL { background: rgba(239,68,68,0.1); border-color: var(--critical); }
+    .sev-CRITICAL .badge.sev { background: var(--critical); color: #fff; }
+    .sev-HIGH { background: rgba(249,115,22,0.1); border-color: var(--high); }
+    .sev-HIGH .badge.sev { background: var(--high); color: #fff; }
+    .sev-MODERATE { background: rgba(234,179,8,0.1); border-color: var(--moderate); }
+    .sev-MODERATE .badge.sev { background: var(--moderate); color: var(--bg); }
+    .sev-LOW { background: rgba(34,197,94,0.1); border-color: var(--low); }
+    .sev-LOW .badge.sev { background: var(--low); color: #fff; }
+    .sev-INFO { background: rgba(59,130,246,0.1); border-color: var(--info); }
+    .sev-INFO .badge.sev { background: var(--info); color: #fff; }
+
+    .result-banner h2 { font-size: 1.05rem; font-weight: 700; }
+    .result-banner p { font-size: 0.86rem; color: var(--text-muted); }
+
+    .card-grid { display: grid; gap: 14px; grid-template-columns: 1fr; }
+    @media (min-width: 640px) { .card-grid { grid-template-columns: 1fr 1fr; } }
+
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 18px;
+    }
+    .card h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 10px; font-weight: 600; }
+    .card ul { list-style: none; }
+    .card ul li {
+      padding: 7px 0; border-bottom: 1px solid var(--border);
+      font-size: 0.88rem; display: flex; align-items: flex-start; gap: 8px;
+    }
+    .card ul li:last-child { border-bottom: none; }
+    .card ul li::before { content: '→'; color: var(--accent); font-weight: 700; flex-shrink: 0; }
+    .card.full { grid-column: 1 / -1; }
+    .card.safety-card { border-color: var(--critical); background: rgba(239,68,68,0.05); }
+    .card.safety-card.safe { border-color: var(--low); background: rgba(34,197,94,0.05); }
+
+    .meta-row {
+      display: flex; gap: 14px; flex-wrap: wrap; margin-top: 14px;
+      padding: 14px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); font-size: 0.82rem;
+    }
+    .meta-item { flex: 1; min-width: 130px; }
+    .meta-item strong { display: block; color: var(--text-muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+    .meta-cached { display: inline-block; background: var(--low); color: #fff; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-family: var(--mono); margin-left: 6px; }
+
+    /* Feed */
+    .feed-item {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px 18px; margin-bottom: 10px;
+    }
+    .feed-item .feed-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .feed-item .feed-title { font-weight: 600; font-size: 0.9rem; }
+    .feed-item .feed-time { font-size: 0.72rem; color: var(--text-muted); font-family: var(--mono); }
+    .feed-item .feed-location { font-size: 0.8rem; color: var(--accent); }
+    .feed-empty { text-align: center; padding: 40px; color: var(--text-muted); }
+
+    .error-msg {
+      background: rgba(239,68,68,0.1); border: 1px solid var(--critical);
+      border-radius: var(--radius); padding: 14px 18px; margin-bottom: 16px;
+      color: #fca5a5; font-size: 0.88rem; display: none;
+    }
+    .error-msg.active { display: block; }
+
+    .services-bar {
+      display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+      padding: 10px; font-size: 0.7rem; color: var(--text-muted);
+      border-top: 1px solid var(--border); margin-top: 36px;
+    }
+    .service-tag { background: var(--surface); border: 1px solid var(--border); padding: 3px 9px; border-radius: 16px; }
+
+    @media (max-width: 480px) {
+      main { padding: 14px 12px 60px; }
+      .input-section, .card { padding: 14px; }
+      .tabs { flex-wrap: wrap; }
+    }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+  </style>
+</head>
+<body>
+  <a href="#main-input" class="skip-link">Skip to main content</a>
+
+  <header role="banner">
+    <div class="header-left">
+      <div class="logo" aria-hidden="true">VF</div>
+      <div>
+        <h1>Venue<span>Flow</span></h1>
+        <span class="header-badge">by volunteer.media</span>
+      </div>
+    </div>
+    <select class="lang-select" id="lang-select" aria-label="Interface language">
+      <option value="en">English</option>
+      <option value="hi">हिन्दी</option>
+      <option value="te">తెలుగు</option>
+      <option value="ta">தமிழ்</option>
+      <option value="kn">ಕನ್ನಡ</option>
+      <option value="mr">मराठी</option>
+    </select>
+  </header>
+
+  <main role="main">
+    <!-- Tabs -->
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" role="tab" onclick="switchTab('report')" aria-selected="true">📝 Report</button>
+      <button class="tab-btn" role="tab" onclick="switchTab('feed')" aria-selected="false">📡 Live Feed</button>
+      <button class="tab-btn" role="tab" onclick="switchTab('about')" aria-selected="false">ℹ️ About</button>
+    </div>
+
+    <!-- Report Tab -->
+    <div class="tab-content active" id="tab-report">
+      <section class="input-section" aria-label="Submit crowd report">
+        <label for="main-input">What's happening at the venue?</label>
+        <p class="hint">Describe what you see — queues, crowds, parking, food stalls, weather. <em>Works in 6 Indian languages.</em> Your report helps everyone at the event.</p>
+        <textarea id="main-input" placeholder="e.g. Gate 3 pe bahut bheed hai, gate 5 se jao bilkul khaali hai..." maxlength="5000"></textarea>
+        <div class="actions">
+          <button class="btn-primary" id="report-btn" onclick="submitReport()">📡 Submit Report</button>
+          <button class="btn-secondary" onclick="clearAll()">Clear</button>
+        </div>
+        <div class="examples" id="examples-row" role="group" aria-label="Example reports"></div>
+      </section>
+
+      <div class="error-msg" id="error" role="alert"></div>
+      <div class="loading" id="loading" aria-live="polite">
+        <div class="spinner" aria-hidden="true"></div>
+        <p>Analyzing your report with Gemini AI...</p>
+      </div>
+
+      <section class="results" id="results" aria-label="Analysis results" aria-live="polite">
+        <div id="result-banner" class="result-banner"></div>
+        <div class="card-grid" id="card-grid"></div>
+        <div class="meta-row" id="meta-row"></div>
+      </section>
+    </div>
+
+    <!-- Feed Tab -->
+    <div class="tab-content" id="tab-feed">
+      <h2 style="font-size:1.1rem;margin-bottom:16px;">📡 Live Crowd Pulse</h2>
+      <p style="font-size:0.84rem;color:var(--text-muted);margin-bottom:18px;">Real-time reports from attendees across the venue.</p>
+      <button class="btn-secondary" onclick="loadFeed()" style="margin-bottom:18px;">🔄 Refresh Feed</button>
+      <div id="feed-container"><div class="feed-empty">No reports yet. Be the first to submit!</div></div>
+    </div>
+
+    <!-- About Tab -->
+    <div class="tab-content" id="tab-about">
+      <div class="card full" style="margin-bottom:16px;">
+        <h3>What is VenueFlow?</h3>
+        <p style="font-size:0.9rem;line-height:1.7;margin-top:8px;">
+          VenueFlow is a crowd-sourced intelligence platform for live sporting events. Every attendee can report what they see — long queues, empty sections, great food stalls, parking chaos, weather changes. Gemini AI analyzes these reports and creates actionable guidance for everyone.
+        </p>
+        <p style="font-size:0.9rem;line-height:1.7;margin-top:10px;">
+          Think of it as <strong>"Waze for stadiums"</strong> — powered by the crowd, refined by AI, helping everyone have a better experience.
+        </p>
+      </div>
+      <div class="card full">
+        <h3>Google Cloud Services</h3>
+        <p style="font-size:0.85rem;color:var(--text-muted);margin-top:8px;">
+          Vertex AI · Gemini 2.5 Flash · Cloud Translate v3 · Cloud Firestore · Cloud Storage · Secret Manager · Cloud Logging · Cloud Run
+        </p>
+      </div>
+    </div>
+
+    <div class="services-bar">
+      <span class="service-tag">🧠 Vertex AI</span>
+      <span class="service-tag">🤖 Gemini 2.5 Flash</span>
+      <span class="service-tag">🌐 Cloud Translate</span>
+      <span class="service-tag">🔥 Firestore</span>
+      <span class="service-tag">📦 Cloud Storage</span>
+      <span class="service-tag">🔐 Secret Manager</span>
+      <span class="service-tag">📊 Cloud Logging</span>
+      <span class="service-tag">☁️ Cloud Run</span>
+    </div>
+  </main>
+
+  <script>
+    const EXAMPLES = [];
+    const input = document.getElementById('main-input');
+    const loading = document.getElementById('loading');
+    const results = document.getElementById('results');
+    const errorDiv = document.getElementById('error');
+
+    // Tab switching
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+      document.getElementById('tab-' + tab).classList.add('active');
+      event.target.classList.add('active');
+      event.target.setAttribute('aria-selected', 'true');
+      if (tab === 'feed') loadFeed();
+    }
+
+    // Examples
+    function setExamples(examples) {
+      const row = document.getElementById('examples-row');
+      row.innerHTML = examples.map((ex, i) => `<button class="example-chip" onclick="loadExample(${i})">${ex.label}</button>`).join('');
+      examples.forEach(ex => EXAMPLES.push(ex.text));
+    }
+
+    function loadExample(i) { input.value = EXAMPLES[i]; input.focus(); }
+    function clearAll() { input.value = ''; results.classList.remove('active'); loading.classList.remove('active'); errorDiv.classList.remove('active'); input.focus(); }
+    function showError(msg) { errorDiv.textContent = msg; errorDiv.classList.add('active'); }
+    function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+    // Submit report
+    async function submitReport() {
+      const text = input.value.trim();
+      if (!text) { showError('Please describe what you see at the venue.'); return; }
+
+      errorDiv.classList.remove('active');
+      results.classList.remove('active');
+      loading.classList.add('active');
+      document.getElementById('report-btn').disabled = true;
+
+      try {
+        const res = await fetch('/report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ input: text })
+        });
+        if (res.status === 429) { showError('Too many requests. Please wait.'); return; }
+        const data = await res.json();
+        if (data.error) { showError(data.error); return; }
+        renderResults(data);
+      } catch (e) {
+        showError('Network error. Please try again.');
+      } finally {
+        loading.classList.remove('active');
+        document.getElementById('report-btn').disabled = false;
+      }
+    }
+
+    // Render results
+    function renderResults(d) {
+      const sev = d.severity || 'INFO';
+      const banner = document.getElementById('result-banner');
+      banner.className = `result-banner sev-${sev}`;
+      banner.innerHTML = `
+        <div class="result-header">
+          <span class="badge sev">${esc(sev)}</span>
+          <span class="badge type-badge">${esc(d.report_type || 'GENERAL')}</span>
+          ${d.crowd_density && d.crowd_density !== 'UNKNOWN' ? `<span class="badge type-badge">👥 ${esc(d.crowd_density)}</span>` : ''}
+          ${d._meta?.cached ? '<span class="meta-cached">CACHED</span>' : ''}
+          ${d._meta?.response_language && d._meta.response_language !== 'en' ? `<span class="badge type-badge">🌐 ${esc(d._meta.response_language)}</span>` : ''}
+        </div>
+        <h2>${esc(d.title)}</h2>
+        <p>${esc(d.summary)}</p>
+        ${d.location_in_venue ? `<p style="margin-top:4px;color:var(--accent);font-size:0.84rem;">📍 ${esc(d.location_in_venue)}</p>` : ''}`;
+
+      let cards = '';
+
+      if (d.recommended_actions?.length) {
+        cards += `<div class="card"><h3>⚡ What To Do</h3><ul>${d.recommended_actions.map(a => `<li>${esc(a)}</li>`).join('')}</ul></div>`;
+      }
+      if (d.alternative_suggestions?.length) {
+        cards += `<div class="card"><h3>🔄 Better Alternatives</h3><ul>${d.alternative_suggestions.map(a => `<li>${esc(a)}</li>`).join('')}</ul></div>`;
+      }
+      if (d.key_insights?.length) {
+        cards += `<div class="card"><h3>🔍 Key Insights</h3><ul>${d.key_insights.map(k => `<li>${esc(k)}</li>`).join('')}</ul></div>`;
+      }
+      if (d.safety_alert) {
+        const sa = d.safety_alert;
+        const cls = sa.is_safety_concern ? 'safety-card' : 'safety-card safe';
+        const icon = sa.is_safety_concern ? '🚨' : '✅';
+        const label = sa.is_safety_concern ? 'SAFETY CONCERN' : 'NO SAFETY ISSUES';
+        cards += `<div class="card ${cls}"><h3>${icon} ${label}</h3><p style="font-size:0.88rem">${esc(sa.details)}</p></div>`;
+      }
+
+      document.getElementById('card-grid').innerHTML = cards;
+
+      const meta = d._meta || {};
+      document.getElementById('meta-row').innerHTML = `
+        <div class="meta-item"><strong>Wait Time</strong>${esc(d.wait_time_estimate || 'N/A')}</div>
+        <div class="meta-item"><strong>Event Phase</strong>${esc(d.event_phase_relevance || 'ANY')}</div>
+        <div class="meta-item"><strong>Confidence</strong>${esc(d.confidence || 'MEDIUM')}</div>
+        <div class="meta-item"><strong>Processing</strong>${meta.processing_time_sec || '—'}s · ${esc(meta.response_language || 'en')}</div>`;
+
+      results.classList.add('active');
+      results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Live feed
+    async function loadFeed() {
+      const container = document.getElementById('feed-container');
+      container.innerHTML = '<div class="feed-empty">Loading reports...</div>';
+      try {
+        const res = await fetch('/feed?limit=20');
+        const data = await res.json();
+        if (!data.reports?.length) { container.innerHTML = '<div class="feed-empty">No reports yet. Be the first to submit!</div>'; return; }
+        container.innerHTML = data.reports.map(r => `
+          <div class="feed-item">
+            <div class="feed-header">
+              <span class="feed-title">${esc(r.title || r.report_type || 'Report')}</span>
+              <span class="feed-time">${esc((r.timestamp || '').slice(11, 16))}</span>
+            </div>
+            <div class="feed-location">📍 ${esc(r.location_in_venue || 'Unknown')}</div>
+            <div style="margin-top:6px;display:flex;gap:6px;">
+              <span class="badge sev" style="background:var(--${(r.severity||'info').toLowerCase()});color:#fff;font-size:0.65rem;">${esc(r.severity)}</span>
+              <span class="badge type-badge" style="font-size:0.65rem;">${esc(r.report_type)}</span>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) { container.innerHTML = '<div class="feed-empty">Failed to load feed.</div>'; }
+    }
+
+    // Keyboard shortcut
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) submitReport(); });
+
+    // Init examples
+    setExamples([
+      { label: '🏟️ Gate Crowd (Hindi)', text: 'bhai gate 3 pe bahut bheed hai, 30 minute se khade hain. gate 5 bilkul khaali hai wahan se jao. security check bhi fast hai udhar.' },
+      { label: '🍔 Food Queue', text: 'Food court 2 near east stand is insanely packed, waited 25 mins still not at counter. Any faster options? Need to get back before innings starts.' },
+      { label: '🅿️ Parking Chaos', text: 'Parking lot A completely full, cars blocking the exit road. Lot C near Uppal side still has space. Autos available near gate 7 for those coming by road.' },
+      { label: '🌧️ Weather Alert (Telugu)', text: 'స్టేడియంలో వర్షం మొదలైంది. ఈస్ట్ స్టాండ్ లో అందరూ తడుస్తున్నారు. కవర్డ్ సెక్షన్లకు వెళ్ళండి. వెస్ట్ స్టాండ్ లో చోటు ఉంది.' },
+      { label: '🚨 Safety Concern', text: 'Too many people pushing at Gate D after match ended. Feels unsafe, almost like a stampede situation. Security not managing the flow. People with kids struggling. Need help urgently.' },
+    ]);
+  </script>
+</body>
+</html>
