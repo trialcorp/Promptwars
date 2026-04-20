@@ -3,224 +3,455 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VenueFlow — Crowd Intelligence for Live Events</title>
+  <title>VenuePulse — AI Crowd Intelligence</title>
   <meta name="description" content="AI-powered crowd intelligence platform for stadium events. Report what you see, help everyone." />
+  
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
   <style>
     :root {
-      --bg: #0b0f19;
-      --surface: #111827;
-      --surface-2: #1a2235;
-      --card: #1e293b;
-      --border: #1e2a3a;
-      --text: #e2e8f0;
-      --text-muted: #8896ab;
-      --accent: #06b6d4;
-      --accent-glow: rgba(6,182,212,0.12);
-      --critical: #ef4444;
+      --bg-deep: #05050A;
+      --surface: rgba(22, 22, 30, 0.65);
+      --surface-solid: #15151e;
+      --surface-hover: rgba(35, 35, 45, 0.8);
+      --surface-active: rgba(45, 45, 60, 0.9);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(139, 92, 246, 0.3);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      
+      --accent-primary: #06b6d4;  /* Cyan */
+      --accent-secondary: #8b5cf6; /* Purple */
+      
+      --critical: #ef4444; /* Safety/Critical */
       --high: #f97316;
       --moderate: #eab308;
-      --low: #22c55e;
+      --low: #10b981;
       --info: #3b82f6;
-      --crowd: #8b5cf6;
-      --food: #f59e0b;
-      --parking: #6366f1;
-      --weather: #0ea5e9;
-      --safety: #ef4444;
-      --radius: 12px;
-      --font: 'DM Sans', system-ui, sans-serif;
-      --mono: 'JetBrains Mono', monospace;
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.6; }
 
-    .skip-link { position: absolute; left: -9999px; top: 0; background: var(--accent); color: var(--bg); padding: 8px 16px; z-index: 1000; font-weight: 600; }
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 20px;
+      
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body { 
+      font-family: var(--font-body); 
+      background-color: var(--bg-deep); 
+      color: var(--text); 
+      min-height: 100vh; 
+      line-height: 1.6; 
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Dynamic Background Blobs */
+    .bg-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      z-index: -1;
+      opacity: 0.4;
+      animation: float 20s infinite ease-in-out alternate;
+    }
+    .blob-1 {
+      width: 40vw; height: 40vw;
+      background: radial-gradient(circle, var(--accent-secondary) 0%, transparent 70%);
+      top: -10%; left: -10%;
+    }
+    .blob-2 {
+      width: 35vw; height: 35vw;
+      background: radial-gradient(circle, var(--accent-primary) 0%, transparent 70%);
+      bottom: 10%; right: -5%;
+      animation-delay: -10s;
+    }
+
+    @keyframes float {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(5%, 10%) scale(1.1); }
+    }
+
+    .skip-link { position: absolute; left: -9999px; top: 0; background: var(--accent-primary); color: #000; padding: 8px 16px; z-index: 1000; font-weight: 600; font-family: var(--font-heading); }
     .skip-link:focus { left: 0; }
 
+    /* Glass Header */
     header {
-      border-bottom: 1px solid var(--border); padding: 14px 24px;
+      position: sticky; top: 0; z-index: 100;
+      border-bottom: 1px solid var(--border); 
+      padding: 16px 32px;
       display: flex; align-items: center; justify-content: space-between;
-      background: var(--surface);
+      background: rgba(5, 5, 10, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
     }
-    .header-left { display: flex; align-items: center; gap: 12px; }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    
     .logo {
-      width: 36px; height: 36px; border-radius: 10px;
-      background: linear-gradient(135deg, var(--accent), var(--crowd));
-      display: grid; place-items: center; font-size: 16px; font-weight: 700; color: #fff;
+      width: 42px; height: 42px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      display: grid; place-items: center; 
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
     }
-    header h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; }
-    header h1 span { color: var(--accent); }
-    .header-badge { font-size: 0.68rem; color: var(--text-muted); background: var(--surface-2); padding: 3px 8px; border-radius: 12px; border: 1px solid var(--border); }
+    .logo i { color: #fff; width: 24px; height: 24px; }
+    
+    header h1 { font-family: var(--font-heading); font-size: 1.3rem; font-weight: 700; letter-spacing: -0.02em; }
+    header h1 span { background: linear-gradient(to right, var(--accent-primary), #a78bfa); -webkit-background-clip: text; color: transparent; }
+    .header-badge { font-size: 0.7rem; color: var(--accent-primary); background: rgba(6, 182, 212, 0.1); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(6, 182, 212, 0.2); font-weight: 500; }
 
     .lang-select {
-      background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
-      border-radius: 8px; padding: 6px 10px; font-family: var(--font); font-size: 0.82rem;
+      background: var(--surface); color: var(--text); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 8px 12px; font-family: var(--font-body); font-size: 0.85rem;
+      cursor: pointer; transition: border-color 0.3s; outline: none;
     }
+    .lang-select:focus { border-color: var(--accent-primary); }
 
-    main { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+    main { max-width: 1000px; margin: 0 auto; padding: 40px 24px 80px; }
 
-    /* Tabs */
-    .tabs { display: flex; gap: 4px; margin-bottom: 24px; background: var(--surface); border-radius: 10px; padding: 4px; border: 1px solid var(--border); }
+    /* Bento Tabs */
+    .tabs { 
+      display: flex; gap: 8px; margin-bottom: 32px; 
+      background: rgba(20, 20, 30, 0.4); 
+      backdrop-filter: blur(10px);
+      border-radius: var(--radius-lg); padding: 6px; 
+      border: 1px solid var(--border); 
+      width: fit-content; margin-left: auto; margin-right: auto;
+    }
     .tab-btn {
-      flex: 1; padding: 10px 16px; font-family: var(--font); font-size: 0.85rem;
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 24px; font-family: var(--font-heading); font-size: 0.95rem;
       font-weight: 600; background: transparent; color: var(--text-muted);
-      border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s;
+      border: none; border-radius: 14px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .tab-btn.active { background: var(--accent); color: var(--bg); }
-    .tab-btn:hover:not(.active) { color: var(--text); }
+    .tab-btn i { width: 18px; height: 18px; transition: transform 0.3s; }
+    .tab-btn.active { 
+      background: var(--surface-active); color: var(--text); 
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .tab-btn.active i { color: var(--accent-primary); transform: scale(1.1); }
+    .tab-btn:hover:not(.active) { color: var(--text); background: var(--surface); }
 
-    .tab-content { display: none; }
+    .tab-content { display: none; animation: fadeIn 0.4s ease-out forwards; opacity: 0; }
     .tab-content.active { display: block; }
-
-    /* Report Section */
-    .input-section {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 24px; margin-bottom: 20px;
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-    .input-section label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.95rem; }
-    .input-section .hint { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 14px; }
-    .hint em { color: var(--accent); font-style: normal; }
+
+    /* Report Section / Bento Card */
+    .bento-card {
+      background: var(--surface); 
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 32px; margin-bottom: 24px;
+      box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+      transition: transform 0.3s, border-color 0.3s;
+    }
+    .bento-card:hover { border-color: rgba(255,255,255,0.15); }
+
+    .input-section label { display: flex; align-items: center; gap: 10px; font-family: var(--font-heading); font-size: 1.25rem; font-weight: 600; margin-bottom: 8px; }
+    .input-section label i { color: var(--accent-secondary); }
+    .input-section .hint { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5; }
+    .hint em { color: var(--accent-primary); font-style: normal; font-weight: 500;}
 
     textarea {
-      width: 100%; min-height: 120px; padding: 14px;
-      background: var(--surface-2); border: 1px solid var(--border);
-      border-radius: 8px; color: var(--text); font-family: var(--font);
-      font-size: 0.92rem; resize: vertical; line-height: 1.6; transition: border-color 0.2s;
+      width: 100%; min-height: 140px; padding: 18px;
+      background: rgba(10, 10, 15, 0.6); border: 1px solid var(--border);
+      border-radius: var(--radius-md); color: var(--text); font-family: var(--font-body);
+      font-size: 0.95rem; resize: vertical; line-height: 1.6; 
+      transition: all 0.3s; box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
     }
-    textarea:focus { outline: none; border-color: var(--accent); }
+    textarea:focus { 
+      outline: none; border-color: var(--accent-secondary); 
+      background: rgba(15, 15, 25, 0.8);
+      box-shadow: inset 0 2px 10px rgba(0,0,0,0.2), 0 0 0 4px rgba(139, 92, 246, 0.1); 
+    }
     textarea::placeholder { color: var(--text-muted); }
 
-    .actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+    .actions { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
     button {
-      font-family: var(--font); font-size: 0.88rem; font-weight: 600;
-      border: none; border-radius: 8px; cursor: pointer; padding: 10px 22px; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-family: var(--font-heading); font-size: 0.95rem; font-weight: 600;
+      border: none; border-radius: var(--radius-sm); cursor: pointer; padding: 12px 28px; 
+      transition: all 0.25s;
     }
-    .btn-primary { background: var(--accent); color: var(--bg); }
-    .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
-    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-    .btn-secondary { background: var(--surface-2); color: var(--text-muted); border: 1px solid var(--border); }
-    .btn-secondary:hover { color: var(--text); border-color: var(--text-muted); }
+    button i { width: 18px; height: 18px; }
+    .btn-primary { 
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); 
+      color: #fff; box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+    }
+    .btn-primary:hover { 
+      box-shadow: 0 6px 20px rgba(6, 182, 212, 0.5); 
+      transform: translateY(-2px); 
+    }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; filter: grayscale(50%); }
+    
+    .btn-secondary { background: var(--surface-active); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--surface-hover); border-color: rgba(255,255,255,0.2); transform: translateY(-1px); }
 
-    .examples { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+    /* Example Prompts */
+    .examples-heading { font-family: var(--font-heading); font-size: 0.85rem; color: var(--text-muted); margin: 24px 0 12px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; display: flex; align-items: center; gap: 6px;}
+    .examples { display: flex; gap: 10px; flex-wrap: wrap; }
+    
     .example-chip {
-      font-family: var(--font); font-size: 0.74rem; padding: 6px 12px;
-      background: var(--accent-glow); color: var(--accent);
-      border: 1px solid rgba(6,182,212,0.25); border-radius: 20px;
-      cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; gap: 6px;
+      font-family: var(--font-body); font-size: 0.8rem; padding: 8px 14px;
+      background: rgba(6, 182, 212, 0.05); color: #e2e8f0;
+      border: 1px solid rgba(6, 182, 212, 0.2); border-radius: 20px;
+      cursor: pointer; transition: all 0.2s; font-weight: 500;
     }
-    .example-chip:hover { background: rgba(6,182,212,0.25); }
+    .example-chip i { width: 14px; height: 14px; color: var(--accent-primary); }
+    .example-chip:hover { 
+      background: rgba(6, 182, 212, 0.15); 
+      border-color: var(--accent-primary);
+      transform: translateY(-2px);
+    }
 
-    /* Loading */
-    .loading { display: none; text-align: center; padding: 40px 24px; }
+    /* Loading state */
+    .loading { display: none; text-align: center; padding: 50px 24px; }
     .loading.active { display: block; }
-    .spinner { width: 36px; height: 36px; margin: 0 auto 14px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    .spinner { 
+      width: 48px; height: 48px; margin: 0 auto 20px; 
+      border: 4px solid var(--surface-active); 
+      border-top-color: var(--accent-secondary); 
+      border-right-color: var(--accent-primary);
+      border-radius: 50%; 
+      animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite; 
+    }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .loading p { color: var(--text-muted); font-size: 0.85rem; }
+    .loading p { color: var(--text); font-size: 1rem; font-family: var(--font-heading); letter-spacing: 0.02em; animation: pulseText 1.5s infinite; }
+    @keyframes pulseText { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
 
     /* Results */
-    .results { display: none; }
-    .results.active { display: block; }
+    .results { display: none; margin-top: 24px;}
+    .results.active { display: block; animation: slideUp 0.5s ease-out; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
     .result-banner {
-      padding: 18px 22px; border-radius: var(--radius);
-      margin-bottom: 16px; border-left: 4px solid; display: flex; flex-direction: column; gap: 6px;
+      padding: 24px; border-radius: var(--radius-lg);
+      margin-bottom: 20px; border-left: 5px solid; display: flex; flex-direction: column; gap: 10px;
+      background: linear-gradient(to right, rgba(20,20,30,0.8), rgba(10,10,15,0.4));
+      backdrop-filter: blur(12px); border: 1px solid var(--border);
     }
-    .result-header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .result-header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    
     .badge {
-      font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
-      padding: 3px 9px; border-radius: 6px; letter-spacing: 0.05em;
-      white-space: nowrap; font-family: var(--mono);
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+      padding: 4px 10px; border-radius: 6px; letter-spacing: 0.05em;
+      font-family: var(--font-mono);
     }
-    .type-badge { background: var(--surface-2); color: var(--accent); border: 1px solid var(--border); }
-    .sev-CRITICAL { background: rgba(239,68,68,0.1); border-color: var(--critical); }
-    .sev-CRITICAL .badge.sev { background: var(--critical); color: #fff; }
-    .sev-HIGH { background: rgba(249,115,22,0.1); border-color: var(--high); }
-    .sev-HIGH .badge.sev { background: var(--high); color: #fff; }
-    .sev-MODERATE { background: rgba(234,179,8,0.1); border-color: var(--moderate); }
-    .sev-MODERATE .badge.sev { background: var(--moderate); color: var(--bg); }
-    .sev-LOW { background: rgba(34,197,94,0.1); border-color: var(--low); }
-    .sev-LOW .badge.sev { background: var(--low); color: #fff; }
-    .sev-INFO { background: rgba(59,130,246,0.1); border-color: var(--info); }
-    .sev-INFO .badge.sev { background: var(--info); color: #fff; }
+    .badge i { width: 14px; height: 14px; }
+    
+    .type-badge { background: var(--surface-active); color: var(--accent-primary); border: 1px solid var(--border); }
+    
+    .banner-sev-CRITICAL { border-left-color: var(--critical); }
+    .banner-sev-CRITICAL .badge.sev { background: var(--critical); color: #fff; box-shadow: 0 0 10px rgba(239,68,68,0.5); }
+    .banner-sev-HIGH { border-left-color: var(--high); }
+    .banner-sev-HIGH .badge.sev { background: var(--high); color: #fff; }
+    .banner-sev-MODERATE { border-left-color: var(--moderate); }
+    .banner-sev-MODERATE .badge.sev { background: var(--moderate); color: #000; }
+    .banner-sev-LOW { border-left-color: var(--low); }
+    .banner-sev-LOW .badge.sev { background: var(--low); color: #fff; }
+    .banner-sev-INFO { border-left-color: var(--info); }
+    .banner-sev-INFO .badge.sev { background: var(--info); color: #fff; }
 
-    .result-banner h2 { font-size: 1.05rem; font-weight: 700; }
-    .result-banner p { font-size: 0.86rem; color: var(--text-muted); }
+    .result-banner h2 { font-size: 1.25rem; font-family: var(--font-heading); font-weight: 700; color: #fff;}
+    .result-banner p { font-size: 0.95rem; color: var(--text-muted); line-height: 1.6; }
+    .loc-text { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; color: var(--accent-primary); font-size: 0.9rem; font-weight: 500; background: rgba(6,182,212,0.1); padding: 4px 10px; border-radius: 6px;}
 
-    .card-grid { display: grid; gap: 14px; grid-template-columns: 1fr; }
-    @media (min-width: 640px) { .card-grid { grid-template-columns: 1fr 1fr; } }
+    .card-grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
+    @media (min-width: 768px) { .card-grid { grid-template-columns: 1fr 1fr; } }
 
-    .card {
+    .result-card-item {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 18px;
+      border-radius: var(--radius-md); padding: 20px;
+      transition: transform 0.2s;
     }
-    .card h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 10px; font-weight: 600; }
-    .card ul { list-style: none; }
-    .card ul li {
-      padding: 7px 0; border-bottom: 1px solid var(--border);
-      font-size: 0.88rem; display: flex; align-items: flex-start; gap: 8px;
+    .result-card-item:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.15); }
+    .result-card-item h3 { 
+      font-size: 0.85rem; font-family: var(--font-heading); text-transform: uppercase; 
+      letter-spacing: 0.08em; color: #fff; margin-bottom: 12px; font-weight: 700;
+      display: flex; align-items: center; gap: 8px;
     }
-    .card ul li:last-child { border-bottom: none; }
-    .card ul li::before { content: '→'; color: var(--accent); font-weight: 700; flex-shrink: 0; }
-    .card.full { grid-column: 1 / -1; }
-    .card.safety-card { border-color: var(--critical); background: rgba(239,68,68,0.05); }
-    .card.safety-card.safe { border-color: var(--low); background: rgba(34,197,94,0.05); }
+    .result-card-item h3 i { color: var(--accent-secondary); width: 18px; height: 18px; }
+    .result-card-item ul { list-style: none; }
+    .result-card-item ul li {
+      padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 0.9rem; display: flex; align-items: flex-start; gap: 12px; color: var(--text-muted);
+    }
+    .result-card-item ul li:last-child { border-bottom: none; padding-bottom: 0; }
+    .result-card-item ul li::before { 
+      content: ''; 
+      display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent-primary); margin-top: 8px; flex-shrink: 0; box-shadow: 0 0 8px var(--accent-primary);
+    }
+    
+    .card-full { grid-column: 1 / -1; }
+    
+    .safety-card { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.05); }
+    .safety-card h3 i { color: var(--critical); }
+    .safety-card.safe { border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.05); }
+    .safety-card.safe h3 i { color: var(--low); }
 
     .meta-row {
-      display: flex; gap: 14px; flex-wrap: wrap; margin-top: 14px;
-      padding: 14px; background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); font-size: 0.82rem;
+      display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      margin-top: 20px; padding: 20px; 
+      background: rgba(10,10,15,0.5); border: 1px solid var(--border);
+      border-radius: var(--radius-md); font-size: 0.85rem;
     }
-    .meta-item { flex: 1; min-width: 130px; }
-    .meta-item strong { display: block; color: var(--text-muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
-    .meta-cached { display: inline-block; background: var(--low); color: #fff; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-family: var(--mono); margin-left: 6px; }
+    .meta-item { display: flex; flex-direction: column; gap: 4px; }
+    .meta-item strong { color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--font-heading); }
+    .meta-item span { color: #fff; font-weight: 500; font-family: var(--font-mono); font-size: 0.9rem;}
+    .meta-cached { display: inline-block; background: var(--low); color: #fff; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; }
 
-    /* Feed */
+    /* Feed UI */
+    .feed-header-section { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;}
+    .feed-header-section h2 { font-family: var(--font-heading); font-size: 1.4rem; display: flex; align-items: center; gap: 10px; }
+    .feed-header-section h2 i { color: var(--accent-primary); }
+    .feed-header-section p { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
+    
+    .feed-grid { display: grid; gap: 16px; }
     .feed-item {
-      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-      padding: 14px 18px; margin-bottom: 10px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
+      padding: 20px; transition: all 0.3s;
+      position: relative; overflow: hidden;
     }
-    .feed-item .feed-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-    .feed-item .feed-title { font-weight: 600; font-size: 0.9rem; }
-    .feed-item .feed-time { font-size: 0.72rem; color: var(--text-muted); font-family: var(--mono); }
-    .feed-item .feed-location { font-size: 0.8rem; color: var(--accent); }
-    .feed-empty { text-align: center; padding: 40px; color: var(--text-muted); }
+    .feed-item::before {
+      content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+      background: var(--sev-color, var(--info));
+    }
+    .feed-item:hover { transform: translateX(4px); border-color: rgba(255,255,255,0.15); background: var(--surface-hover); }
+    
+    .feed-item .f-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+    .feed-item .f-title { font-weight: 600; font-size: 1.05rem; font-family: var(--font-heading); color: #fff; }
+    .feed-item .f-time { font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono); display: flex; align-items: center; gap: 4px;}
+    .feed-item .f-loc { font-size: 0.85rem; color: var(--accent-primary); display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+    .feed-item .f-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+    
+    .feed-empty { 
+      text-align: center; padding: 60px 20px; color: var(--text-muted); 
+      background: rgba(20,20,30,0.3); border: 1px dashed var(--border); border-radius: var(--radius-lg);
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+    }
+    .feed-empty i { width: 48px; height: 48px; opacity: 0.5; color: var(--accent-secondary); }
 
+    /* About Tab */
+    .about-lead { font-size: 1.05rem; color: #fff; line-height: 1.7; margin-top: 12px;}
+    .about-text { font-size: 0.95rem; color: var(--text-muted); line-height: 1.7; margin-top: 16px;}
+    .service-tags { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px;}
+    .service-tag { 
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border); 
+      padding: 6px 14px; border-radius: 20px; font-size: 0.8rem;
+      display: flex; align-items: center; gap: 8px; color: #e2e8f0; font-family: var(--font-mono);
+      transition: background 0.2s;
+    }
+    .service-tag:hover { background: rgba(255,255,255,0.1); }
+    .service-tag i { width: 14px; height: 14px; color: var(--accent-primary); }
+
+    /* Error Message */
     .error-msg {
-      background: rgba(239,68,68,0.1); border: 1px solid var(--critical);
-      border-radius: var(--radius); padding: 14px 18px; margin-bottom: 16px;
-      color: #fca5a5; font-size: 0.88rem; display: none;
+      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.4);
+      border-radius: var(--radius-md); padding: 16px 20px; margin-bottom: 20px;
+      color: #fca5a5; font-size: 0.9rem; display: none; align-items: center; gap: 12px;
+      backdrop-filter: blur(8px);
     }
-    .error-msg.active { display: block; }
+    .error-msg i { color: var(--critical); flex-shrink: 0; }
+    .error-msg.active { display: flex; animation: shake 0.4s; }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
 
-    .services-bar {
-      display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
-      padding: 10px; font-size: 0.7rem; color: var(--text-muted);
-      border-top: 1px solid var(--border); margin-top: 36px;
+    /* Skeleton Loading */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface) 25%, var(--surface-active) 50%, var(--surface) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: var(--radius-sm);
     }
-    .service-tag { background: var(--surface); border: 1px solid var(--border); padding: 3px 9px; border-radius: 16px; }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
 
-    @media (max-width: 480px) {
-      main { padding: 14px 12px 60px; }
-      .input-section, .card { padding: 14px; }
-      .tabs { flex-wrap: wrap; }
+    .pulse {
+      display: inline-block;
+      width: 8px; height: 8px;
+      background: var(--accent-primary);
+      border-radius: 50%;
+      margin-right: 8px;
+      box-shadow: 0 0 10px var(--accent-primary);
+      animation: pulse-ring 1.5s cubic-bezier(0.24, 0, 0.38, 1) infinite;
     }
-    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+    @keyframes pulse-ring {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(2.5); opacity: 0; }
+    }
+
+    .success-check {
+      color: var(--low);
+      animation: check-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes check-pop {
+      0% { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Bottom footer bar */
+    .footer-bar {
+      text-align: center; font-size: 0.8rem; color: var(--text-muted);
+      border-top: 1px solid var(--border); padding-top: 24px; margin-top: 40px;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+    }
+
+    @media (max-width: 600px) {
+      main { padding: 24px 16px 60px; }
+      header { padding: 12px 20px; }
+      .bento-card { padding: 20px; }
+      .tabs { flex-direction: column; width: 100%; border-radius: 16px;}
+      .tab-btn { justify-content: center; width: 100%; }
+      .actions { flex-direction: column; }
+      .actions button { width: 100%; }
+    }
+    
+    :focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 3px; border-radius: 4px; }
   </style>
 </head>
 <body>
+  
+  <!-- Ambient background blobs -->
+  <div class="bg-blob blob-1"></div>
+  <div class="bg-blob blob-2"></div>
+
   <a href="#main-input" class="skip-link">Skip to main content</a>
 
   <header role="banner">
     <div class="header-left">
-      <div class="logo" aria-hidden="true">VF</div>
+      <div class="logo" aria-hidden="true">
+        <i data-lucide="waves"></i>
+      </div>
       <div>
-        <h1>Venue<span>Flow</span></h1>
-        <span class="header-badge">by volunteer.media</span>
+        <h1>Venue<span>Pulse</span></h1>
+        <div class="header-badge">Volunteer.media</div>
       </div>
     </div>
-    <select class="lang-select" id="lang-select" aria-label="Interface language">
+    <select class="lang-select" id="lang-select" onchange="changeLanguage(this.value)" aria-label="Interface language">
       <option value="en">English</option>
       <option value="hi">हिन्दी</option>
       <option value="te">తెలుగు</option>
@@ -231,30 +462,49 @@
   </header>
 
   <main role="main">
-    <!-- Tabs -->
+    
+    <!-- Tabs Navigation -->
     <div class="tabs" role="tablist">
-      <button class="tab-btn active" role="tab" onclick="switchTab('report', event)" aria-selected="true">📝 Report</button>
-      <button class="tab-btn" role="tab" onclick="switchTab('feed', event)" aria-selected="false">📡 Live Feed</button>
-      <button class="tab-btn" role="tab" onclick="switchTab('about', event)" aria-selected="false">ℹ️ About</button>
+      <button class="tab-btn active" role="tab" onclick="switchTab('report', event)" aria-selected="true">
+        <i data-lucide="pen-line"></i> <span data-t="tab_report">Report</span>
+      </button>
+      <button class="tab-btn" role="tab" onclick="switchTab('feed', event)" aria-selected="false">
+        <i data-lucide="activity"></i> <span data-t="tab_feed">Live Feed</span>
+      </button>
+      <button class="tab-btn" role="tab" onclick="switchTab('about', event)" aria-selected="false">
+        <i data-lucide="info"></i> <span data-t="tab_about">About</span>
+      </button>
     </div>
 
     <!-- Report Tab -->
     <div class="tab-content active" id="tab-report">
-      <section class="input-section" aria-label="Submit crowd report">
-        <label for="main-input">What's happening at the venue?</label>
-        <p class="hint">Describe what you see — queues, crowds, parking, food stalls, weather. <em>Works in 6 Indian languages.</em> Your report helps everyone at the event.</p>
-        <textarea id="main-input" placeholder="e.g. Gate 3 pe bahut bheed hai, gate 5 se jao bilkul khaali hai..." maxlength="5000"></textarea>
+      <section class="bento-card input-section" aria-label="Submit crowd report">
+        <label for="main-input"><i data-lucide="eye"></i> <span data-t="label_input">What's happening at the venue?</span></label>
+        <p class="hint" data-t="hint_input">Describe what you see — long queues, crowded gates, parking status, food stalls, or weather. <em>Works in 6 Indian languages.</em> Your observation helps everyone have a better experience.</p>
+        
+        <textarea id="main-input" data-t-placeholder="placeholder_input" placeholder="e.g. Gate 3 pe bahut bheed hai, gate 5 se jao bilkul khaali hai..." maxlength="5000"></textarea>
+        
         <div class="actions">
-          <button class="btn-primary" id="report-btn" onclick="submitReport()">📡 Submit Report</button>
-          <button class="btn-secondary" onclick="clearAll()">Clear</button>
+          <button class="btn-primary" id="report-btn" onclick="submitReport()">
+            <i data-lucide="send"></i> <span data-t="btn_submit">Submit AI Report</span>
+          </button>
+          <button class="btn-secondary" onclick="clearAll()">
+            <i data-lucide="x"></i> <span data-t="btn_clear">Clear</span>
+          </button>
         </div>
+
+        <div class="examples-heading"><i data-lucide="lightbulb" style="width:14px;height:14px"></i> <span data-t="heading_examples">Quick Examples</span></div>
         <div class="examples" id="examples-row" role="group" aria-label="Example reports"></div>
       </section>
 
-      <div class="error-msg" id="error" role="alert"></div>
+      <div class="error-msg" id="error" role="alert">
+        <i data-lucide="alert-circle"></i>
+        <span id="error-text"></span>
+      </div>
+      
       <div class="loading" id="loading" aria-live="polite">
         <div class="spinner" aria-hidden="true"></div>
-        <p>Analyzing your report with Gemini AI...</p>
+        <p data-t="loading_text">Analyzing with Gemini AI...</p>
       </div>
 
       <section class="results" id="results" aria-label="Analysis results" aria-live="polite">
@@ -266,76 +516,248 @@
 
     <!-- Feed Tab -->
     <div class="tab-content" id="tab-feed">
-      <h2 style="font-size:1.1rem;margin-bottom:16px;">📡 Live Crowd Pulse</h2>
-      <p style="font-size:0.84rem;color:var(--text-muted);margin-bottom:18px;">Real-time reports from attendees across the venue.</p>
-      <button class="btn-secondary" onclick="loadFeed()" style="margin-bottom:18px;">🔄 Refresh Feed</button>
-      <div id="feed-container"><div class="feed-empty">No reports yet. Be the first to submit!</div></div>
+      <div class="bento-card">
+        <div class="feed-header-section">
+          <div>
+            <h2 data-t="feed_title"><span class="pulse"></span><i data-lucide="radio"></i> Live Crowd Pulse</h2>
+            <p data-t="feed_subtitle">Real-time ground truth vetted by attendees currently at the venue.</p>
+          </div>
+          <button class="btn-secondary" onclick="loadFeed()">
+            <i data-lucide="refresh-cw"></i> <span data-t="btn_refresh">Refresh Feed</span>
+          </button>
+        </div>
+        
+        <div id="feed-container">
+          <div class="feed-empty">
+            <i data-lucide="inbox"></i>
+            <div>No reports yet. Be the first to submit!</div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- About Tab -->
     <div class="tab-content" id="tab-about">
-      <div class="card full" style="margin-bottom:16px;">
-        <h3>What is VenueFlow?</h3>
-        <p style="font-size:0.9rem;line-height:1.7;margin-top:8px;">
-          VenueFlow is a crowd-sourced intelligence platform for live sporting events. Every attendee can report what they see — long queues, empty sections, great food stalls, parking chaos, weather changes. Gemini AI analyzes these reports and creates actionable guidance for everyone.
+      <div class="bento-card">
+        <h2 style="font-family:var(--font-heading);font-size:1.6rem;display:flex;align-items:center;gap:10px;"><i data-lucide="sparkles" style="color:var(--accent-primary)"></i> <span data-t="about_title">What is VenuePulse?</span></h2>
+        <p class="about-lead" data-t="about_lead">
+          VenuePulse is an AI-powered crowd intelligence platform designed for live sporting events and large arenas.
         </p>
-        <p style="font-size:0.9rem;line-height:1.7;margin-top:10px;">
+        <p class="about-text" data-t="about_text">
+          Every attendee acts as a sensor, reporting what they see on the ground—long queues, empty sections, great food stalls, parking chaos, or sudden weather changes. Gemini AI aggregates, translates, and analyzes these individual reports to create actionable, real-time guidance for everyone.
+        </p>
+        <p class="about-text" style="font-weight:500;color:#fff;" data-t="about_footer">
           Think of it as <strong>"Waze for stadiums"</strong> — powered by the crowd, refined by AI, helping everyone have a better experience.
         </p>
       </div>
-      <div class="card full">
-        <h3>Google Cloud Services</h3>
-        <p style="font-size:0.85rem;color:var(--text-muted);margin-top:8px;">
-          Vertex AI · Gemini 2.5 Flash · Cloud Translate v3 · Cloud Firestore · Cloud Storage · Secret Manager · Cloud Logging · Cloud Run
-        </p>
+      
+      <div class="bento-card">
+        <h3 style="font-family:var(--font-heading);color:#fff;margin-bottom:8px;font-size:1.2rem;">Powered by Google Cloud</h3>
+        <p class="about-text" style="margin-top:0;">Built with state-of-the-art serverless architecture and AI intelligence.</p>
+        
+        <div class="service-tags">
+          <span class="service-tag"><i data-lucide="brain-circuit"></i> Vertex AI</span>
+          <span class="service-tag"><i data-lucide="bot"></i> Gemini 2.5 Flash</span>
+          <span class="service-tag"><i data-lucide="languages"></i> Cloud Translate v3</span>
+          <span class="service-tag"><i data-lucide="database"></i> Cloud Firestore</span>
+          <span class="service-tag"><i data-lucide="box"></i> Cloud Storage</span>
+          <span class="service-tag"><i data-lucide="key"></i> Secret Manager</span>
+          <span class="service-tag"><i data-lucide="server"></i> Cloud Run</span>
+        </div>
       </div>
     </div>
 
-    <div class="services-bar">
-      <span class="service-tag">🧠 Vertex AI</span>
-      <span class="service-tag">🤖 Gemini 2.5 Flash</span>
-      <span class="service-tag">🌐 Cloud Translate</span>
-      <span class="service-tag">🔥 Firestore</span>
-      <span class="service-tag">📦 Cloud Storage</span>
-      <span class="service-tag">🔐 Secret Manager</span>
-      <span class="service-tag">📊 Cloud Logging</span>
-      <span class="service-tag">☁️ Cloud Run</span>
+    <div class="footer-bar">
+      <div>VenuePulse &copy; 2026. Designed for the Future of Live Events.</div>
     </div>
+
   </main>
 
   <script>
-    const EXAMPLES = [];  // Populated by setExamples() below
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // UI Translations
+    const TRANSLATIONS = {
+      en: {
+        tab_report: "Report", tab_feed: "Live Feed", tab_about: "About",
+        label_input: "What's happening at the venue?",
+        hint_input: "Describe what you see — long queues, crowded gates, parking status, food stalls, or weather. <em>Works in 6 Indian languages.</em> Your observation helps everyone have a better experience.",
+        placeholder_input: "e.g. Gate 3 pe bahut bheed hai, gate 5 se jao bilkul khaali hai...",
+        btn_submit: "Submit AI Report", btn_clear: "Clear",
+        heading_examples: "Quick Examples", loading_text: "Analyzing with Gemini AI...",
+        feed_title: "Live Crowd Pulse", feed_subtitle: "Real-time ground truth vetted by attendees currently at the venue.",
+        btn_refresh: "Refresh Feed", about_title: "What is VenuePulse?",
+        about_lead: "VenuePulse is an AI-powered crowd intelligence platform designed for live sporting events and large arenas.",
+        about_text: "Every attendee acts as a sensor, reporting what they see on the ground—long queues, empty sections, great food stalls, parking chaos, or sudden weather changes. Gemini AI aggregates, translates, and analyzes these individual reports to create actionable, real-time guidance for everyone.",
+        about_footer: "Think of it as <strong>\"Waze for stadiums\"</strong> — powered by the crowd, refined by AI, helping everyone have a better experience.",
+        error_empty: "Please describe what you see at the venue.",
+        error_network: "Network error. Please try again.",
+        feed_loading: "Loading real-time reports...", feed_empty: "No reports yet. Be the first to submit!",
+        feed_fail: "Failed to load feed. Check connection."
+      },
+      hi: {
+        tab_report: "रिपोर्ट", tab_feed: "लाइव फीड", tab_about: "बारे में",
+        label_input: "वेन्यू पर क्या हो रहा है?",
+        hint_input: "जो आप देख रहे हैं उसका वर्णन करें — लंबी कतारें, भीड़भाड़ वाले गेट, पार्किंग की स्थिति, खाने के स्टाल या मौसम। <em>6 भारतीय भाषाओं में काम करता है।</em> आपका अवलोकन सभी को बेहतर अनुभव देने में मदद करता है।",
+        placeholder_input: "उदा. गेट 3 पर बहुत भीड़ है, गेट 5 से जाओ बिल्कुल खाली है...",
+        btn_submit: "AI रिपोर्ट सबमिट करें", btn_clear: "साफ़ करें",
+        heading_examples: "त्वरित उदाहरण", loading_text: "Gemini AI के साथ विश्लेषण कर रहे हैं...",
+        feed_title: "लाइव क्राउड पल्स", feed_subtitle: "वर्तमान में वेन्यू पर उपस्थित लोगों द्वारा सत्यापित रीयल-टाइम डेटा।",
+        btn_refresh: "फीड रिफ्रेश करें", about_title: "VenuePulse क्या है?",
+        about_lead: "VenuePulse एक AI-संचालित क्राउड इंटेलिजेंस प्लेटफॉर्म है जिसे लाइव खेल आयोजनों और बड़े एरेना के लिए डिज़ाइन किया गया है।",
+        about_text: "प्रत्येक प्रतिभागी एक सेंसर के रूप में कार्य करता है, जो जमीन पर जो देखता है उसकी रिपोर्ट करता है—लंबी कतारें, खाली सेक्शन, बेहतरीन खाने के स्टाल, पार्किंग की अव्यवस्था, या अचानक मौसम में बदलाव। Gemini AI इन व्यक्तिगत रिपोर्टों को एकत्रित, अनुवाद और विश्लेषण करता है ताकि सभी के लिए कार्रवाई योग्य, रीयल-टाइम मार्गदर्शन बनाया जा सके।",
+        about_footer: "इसे <strong>\"स्टेडियमों के लिए वेज़ (Waze)\"</strong> के रूप में सोचें — भीड़ द्वारा संचालित, AI द्वारा परिष्कृत, सभी को एक बेहतर अनुभव प्राप्त करने में मदद करता है।",
+        error_empty: "कृपया वर्णन करें कि आप वेन्यू पर क्या देख रहे हैं।",
+        error_network: "नेटवर्क त्रुटि। कृपया पुन: प्रयास करें।",
+        feed_loading: "रीयल-टाइम रिपोर्ट लोड हो रही है...", feed_empty: "अभी तक कोई रिपोर्ट नहीं है। सबमिट करने वाले पहले व्यक्ति बनें!",
+        feed_fail: "फीड लोड करने में विफल। कनेक्शन जांचें।"
+      },
+      te: {
+        tab_report: "నివేదిక", tab_feed: "లైవ్ ఫీడ్", tab_about: "గురించి",
+        label_input: "వేదిక వద్ద ఏమి జరుగుతోంది?",
+        hint_input: "మీరు చూసే వాటిని వివరించండి — పొడవైన క్యూలు, రద్దీగా ఉండే గేట్లు, పార్కింగ్ స్థితి, ఆహార స్టాళ్లు లేదా వాతావరణం. <em>6 భారతీయ భాషలలో పనిచేస్తుంది.</em> మీ పరిశీలన ప్రతి ఒక్కరికీ మెరుగైన అనుభవాన్ని పొందడంలో సహాయపడుతుంది.",
+        placeholder_input: "ఉదా. గేట్ 3 వద్ద చాలా రద్దీగా ఉంది, గేట్ 5 నుండి వెళ్ళండి అక్కడ ఖాళీగా ఉంది...",
+        btn_submit: "AI నివేదికను సమర్పించండి", btn_clear: "క్లియర్ చేయండి",
+        heading_examples: "త్వరిత ఉదాహరణలు", loading_text: "Gemini AIతో విశ్లేషిస్తోంది...",
+        feed_title: "లైవ్ క్రౌడ్ పల్స్", feed_subtitle: "ప్రస్తుతం వేదిక వద్ద ఉన్న వారు ధృవీకరించిన నిజ సమయ సమాచారం.",
+        btn_refresh: "ఫీడ్‌ని రిఫ్రెష్ చేయండి", about_title: "VenuePulse అంటే ఏమిటి?",
+        about_lead: "VenuePulse అనేది లైవ్ స్పోర్ట్స్ ఈవెంట్‌లు మరియు పెద్ద అరేనాల కోసం రూపొందించబడిన AI- ఆధారిత క్రౌడ్ ఇంటెలిజెన్స్ ప్లాట్‌ఫారమ్.",
+        about_text: "ప్రతి హాజరైన వ్యక్తి ఒక సెన్సార్‌గా పనిచేస్తాడు, వారు మైదానంలో చూసే వాటిని నివేదిస్తారు—పొడవైన క్యూలు, ఖాళీ విభాగాలు, గొప్ప ఆహార స్టాళ్లు, పార్కింగ్ గందరగోళం లేదా అకస్మాత్తుగా వాతావరణ మార్పులు. Gemini AI ఈ వ్యక్తిగత నివేదికలను ప్రతి ఒక్కరికీ ఉపయోగపడేలా సేకరించి, అనువదించి, విశ్లేషిస్తుంది.",
+        about_footer: "దీనిని <strong>\"స్టేడియంల కోసం వేజ్ (Waze)\"</strong> గా భావించండి — ప్రజలచే నడపబడుతుంది, AI ద్వారా మెరుగుపరచబడుతుంది, ప్రతి ఒక్కరికీ మెరుగైన అనుభవాన్ని కలిగి ఉండటానికి సహాయపడుతుంది.",
+        error_empty: "వేదిక వద్ద మీరు ఏమి చూస్తున్నారో దయచేసి వివరించండి.",
+        error_network: "నెట్‌వర్క్ లోపం. దయచేసి మళ్ళీ ప్రయత్నించండి.",
+        feed_loading: "నిజ-సమయ నివేదికలను లోడ్ చేస్తోంది...", feed_empty: "ఇంకా నివేదికలు లేవు. మొదటగా సమర్పించండి!",
+        feed_fail: "ఫీడ్‌ని లోడ్ చేయడంలో విఫలమైంది. కనెక్షన్ తనిఖీ చేయండి."
+      },
+      ta: {
+        tab_report: "அறிக்கை", tab_feed: "நேரடி ஊட்டம்", tab_about: "பற்றி",
+        label_input: "அரங்கில் என்ன நடக்கிறது?",
+        hint_input: "நீங்கள் பார்ப்பதை விவரிக்கவும் — நீண்ட வரிசைகள், நெரிசலான வாசல்கள், பார்க்கிங் நிலை, உணவு ஸ்டால்கள் அல்லது வானிலை. <em>6 இந்திய மொழிகளில் செயல்படுகிறது.</em> உங்கள் கவனிப்பு அனைவரும் சிறந்த அனுபவத்தைப் பெற உதவுகிறது.",
+        placeholder_input: "உதாரணமாக: கேட் 3-ல் அதிக கூட்டம் உள்ளது, கேட் 5-க்கு செல்லுங்கள் அங்கு காலியாக உள்ளது...",
+        btn_submit: "AI அறிக்கையை சமர்ப்பிக்கவும்", btn_clear: "அழிக்கவும்",
+        heading_examples: "விரைவான உதாரணங்கள்", loading_text: "Gemini AI மூலம் பகுப்பாய்வு செய்யப்படுகிறது...",
+        feed_title: "நேரடி கூட்டத்தின் துடிப்பு", feed_subtitle: "தற்போது அரங்கில் உள்ளவர்களால் சரிபார்க்கப்பட்ட நிகழ்நேர உண்மை நிலை.",
+        btn_refresh: "ஊட்டத்தைப் புதுப்பிக்கவும்", about_title: "VenuePulse என்றால் என்ன?",
+        about_lead: "VenuePulse என்பது நேரடி விளையாட்டு நிகழ்வுகள் மற்றும் பெரிய அரங்குகளுக்காக வடிவமைக்கப்பட்ட AI-இயங்கும் கூட்ட நுண்ணறிவு தளமாகும்.",
+        about_text: "ஒவ்வொரு பார்வையாளரும் ஒரு சென்சாராக செயல்பட்டு, தரையில் அவர்கள் காண்பதை அறிக்கை செய்கிறார்கள்—நீண்ட வரிசைகள், காலியான பகுதிகள், சிறந்த உணவு ஸ்டால்கள், பார்க்கிங் குழப்பம் அல்லது திடீர் வானிலை மாற்றங்கள். Gemini AI இந்த தனிப்பட்ட அறிக்கைகளைத் தொகுத்து, மொழிபெயர்த்து, பகுப்பாய்வு செய்து அனைவருக்கும் பயனுள்ள நிகழ்நேர வழிகாட்டுதலை உருவாக்குகிறது.",
+        about_footer: "இதை <strong>\"விளையாட்டு மைதானங்களுக்கான வேஸ் (Waze)\"</strong> என்று கருதுங்கள் — மக்களால் இயக்கப்படுகிறது, AI மூலம் மேம்படுத்தப்படுகிறது, அனைவரும் சிறந்த அனுபவத்தைப் பெற உதவுகிறது.",
+        error_empty: "அரங்கில் நீங்கள் காண்பதை விவரிக்கவும்.",
+        error_network: "பிணைய பிழை. மீண்டும் முயற்சிக்கவும்.",
+        feed_loading: "நிகழ்நேர அறிக்கைகளை ஏற்றுகிறது...", feed_empty: "இன்னும் அறிக்கைகள் இல்லை. முதலில் சமர்ப்பிக்கவும்!",
+        feed_fail: "ஊட்டத்தை ஏற்றுவதில் தோல்வி. இணைப்பைச் சரிபார்க்கவும்."
+      },
+      kn: {
+        tab_report: "ವರದಿ", tab_feed: "ಲೈವ್ ಫೀಡ್", tab_about: "ಬಗ್ಗೆ",
+        label_input: "ಕ್ರೀಡಾಂಗಣದಲ್ಲಿ ಏನು ನಡೆಯುತ್ತಿದೆ?",
+        hint_input: "ನೀವು ನೋಡುತ್ತಿರುವುದನ್ನು ವಿವರಿಸಿ — ಉದ್ದನೆಯ ಸರತಿ ಸಾಲುಗಳು, ಕಿಕ್ಕಿರಿದ ಗೇಟ್‌ಗಳು, ಪಾರ್ಕಿಂಗ್ ಸ್ಥಿತಿ, ಆಹಾರದ ಸ್ಟಾಲ್‌ಗಳು ಅಥವಾ ಹವಾಮಾನ. <em>6 ಭಾರತೀಯ ಭಾಷೆಗಳಲ್ಲಿ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ.</em> ನಿಮ್ಮ ವೀಕ್ಷಣೆಯು ಪ್ರತಿಯೊಬ್ಬರಿಗೂ ಉತ್ತಮ ಅನುಭವವನ್ನು ಹೊಂದಲು ಸಹಾಯ ಮಾಡುತ್ತದೆ.",
+        placeholder_input: "ಉದಾ: ಗೇಟ್ 3 ರಲ್ಲಿ ಬಹಳ ಭೀಡಿದೆ, ಗೇಟ್ 5 ಖಾಲಿಯಿದೆ ಅಲ್ಲಿಂದ ಹೋಗಿ...",
+        btn_submit: "AI ವರದಿ ಸಲ್ಲಿಸಿ", btn_clear: "ಅಳಿಸಿ",
+        heading_examples: "ತ್ವರಿತ ಉದಾಹರಣೆಗಳು", loading_text: "Gemini AI ನೊಂದಿಗೆ ವಿಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ...",
+        feed_title: "ಲೈವ್ ಕ್ರೌಡ್ ಪಲ್ಸ್", feed_subtitle: "ಪ್ರಸ್ತುತ ಕ್ರೀಡಾಂಗಣದಲ್ಲಿರುವವರು ಪರಿಶೀಲಿಸಿದ ನೈಜ-ಸಮಯದ ಮಾಹಿತಿ.",
+        btn_refresh: "ಫೀಡ್ ರಿಫ್ರೆಶ್ ಮಾಡಿ", about_title: "VenuePulse ಎಂದರೇನು?",
+        about_lead: "VenuePulse ಎಂಬುದು ಲೈವ್ ಕ್ರೀಡಾಕೂಟಗಳು ಮತ್ತು ದೊಡ್ಡ ಕ್ರೀಡಾಂಗಣಗಳಿಗಾಗಿ ವಿನ್ಯಾಸಗೊಳಿಸಲಾದ AI-ಚಾಲಿತ ಕ್ರೌಡ್ ಇಂಟೆಲಿಜೆನ್ಸ್ ಪ್ಲಾಟ್‌ಫಾರ್ಮ್ ಆಗಿದೆ.",
+        about_text: "ಪ್ರತಿ ಪಾಲ್ಗೊಳ್ಳುವವರು ಸಂವೇದಕವಾಗಿ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತಾರೆ, ಅವರು ಮೈದಾನದಲ್ಲಿ ನೋಡುವುದನ್ನು ವರದಿ ಮಾಡುತ್ತಾರೆ—ಉದ್ದನೆಯ ಸಾಲುಗಳು, ಖಾಲಿ ವಿಭಾಗಗಳು, ಉತ್ತಮ ಆಹಾರ ಮಳಿಗೆಗಳು, ಪಾರ್ಕಿಂಗ್ ಗೊಂದಲ ಅಥವಾ ಹಠಾತ್ ಹವಾಮಾನ ಬದಲಾವಣೆಗಳು. Gemini AI ಈ ವೈಯಕ್ತಿಕ ವರದಿಗಳನ್ನು ಒಟ್ಟುಗೂಡಿಸುತ್ತದೆ, ಭಾಷಾಂತರಿಸುತ್ತದೆ ಮತ್ತು ವಿಶ್ಲೇಷಿಸಿ ಎಲ್ಲರಿಗೂ ನೈಜ-ಸಮಯದ ಮಾರ್ಗದರ್ಶನವನ್ನು ನೀಡುತ್ತದೆ.",
+        about_footer: "ಇದನ್ನು <strong>\"ಸ್ಟೇಡಿಯಂಗಳಿಗಾಗಿ ವೇಜ್ (Waze)\"</strong> ಎಂದು ಭಾವಿಸಿ — ಜನರಿಂದ ಚಾಲಿತ, AI ನಿಂದ ಸುಧಾರಿತ, ಪ್ರತಿಯೊಬ್ಬರಿಗೂ ಉತ್ತಮ ಅನುಭವ ನೀಡಲು ಸಹಕಾರಿ.",
+        error_empty: "ನೀವು ಕ್ರೀಡಾಂಗಣದಲ್ಲಿ ಏನನ್ನು ನೋಡುತ್ತಿದ್ದೀರಿ ಎಂಬುದನ್ನು ದಯವಿಟ್ಟು ವಿವರಿಸಿ.",
+        error_network: "ನೆಟ್‌ವರ್ಕ್ ದೋಷ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+        feed_loading: "ನೈಜ-ಸಮಯದ ವರದಿಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ...", feed_empty: "ಇನ್ನೂ ಯಾವುದೇ ವರದಿಗಳಿಲ್ಲ. ಮೊದಲಿಗರಾಗಿ ಸಲ್ಲಿಸಿ!",
+        feed_fail: "ಫೀಡ್ ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ಸಂಪರ್ಕವನ್ನು ಪರಿಶೀಲಿಸಿ."
+      },
+      mr: {
+        tab_report: "अहवाल", tab_feed: "लाईव्ह फीड", tab_about: "बद्दल",
+        label_input: "वेन्यूवर काय चालले आहे?",
+        hint_input: "तुम्ही जे पहात आहात त्याचे वर्णन करा — लांब रांगा, गर्दीचे गेट, पार्किंगची स्थिती, फूड स्टॉल्स किंवा हवामान. <em>6 भारतीय भाषांमध्ये कार्य करते.</em> तुमचे निरीक्षण प्रत्येकाला चांगला अनुभव घेण्यास मदत करते.",
+        placeholder_input: "उदा. गेट 3 वर खूप गर्दी आहे, गेट 5 मधून जा तिथे गर्दी नाही...",
+        btn_submit: "AI अहवाल सादर करा", btn_clear: "कलीयर करा",
+        heading_examples: "द्रुत उदाहरणे", loading_text: "Gemini AI सह विश्लेषण करत आहे...",
+        feed_title: "लाईव्ह क्राउड पल्स", feed_subtitle: "सध्या वेन्यूवर उपस्थित असलेल्या लोकांकडून सत्यापित रिअल-टाइम डेटा.",
+        btn_refresh: "फीड रिफ्रेश करा", about_title: "VenuePulse काय आहे?",
+        about_lead: "VenuePulse हे एक AI-सक्षम क्राउड इंटेलिजेंस प्लॅटफॉर्म आहे जे थेट क्रीडा स्पर्धा आणि मोठ्या मैदानांसाठी डिझाइन केलेले आहे.",
+        about_text: "प्रत्येक उपस्थित व्यक्ती एक सेन्सर म्हणून काम करते, ते जमिनीवर जे पाहतात त्याचा अहवाल देतात—लांब रांगा, रिकामे विभाग, उत्तम फूड स्टॉल्स, पार्किंगचा गोंधळ किंवा अचानक हवामानातील बदल. Gemini AI हे वैयक्तिक अहवाल एकत्रित करते, अनुवादित करते आणि सर्वांसाठी रिअल-टाइम मार्गदर्शन तयार करण्यासाठी त्याचे विश्लेषण करते.",
+        about_footer: "याला <strong>\"स्टेडियमसाठी वेझ (Waze)\"</strong> म्हणून पहा — लोकांद्वारे चालविलेले, AI द्वारे सुधारलेले, प्रत्येकाला चांगला अनुभव घेण्यास मदत करते.",
+        error_empty: "कृपया वेन्यूवर आपल्याला काय दिसत आहे याचे वर्णन करा.",
+        error_network: "नेटवर्क त्रुटी. कृपया पुन्हा प्रयत्न करा.",
+        feed_loading: "रिअल-टाइम अहवाल लोड होत आहेत...", feed_empty: "अद्याप कोणताही अहवाल नाही. अहवाल देणारे पहिले व्हा!",
+        feed_fail: "फीड लोड करण्यात अयशस्वी. कनेक्शन तपासा."
+      }
+    };
+
+    let CURRENT_LANG = localStorage.getItem('venueflow_lang') || 'en';
+
+    function translateUI() {
+      const dict = TRANSLATIONS[CURRENT_LANG] || TRANSLATIONS.en;
+      document.querySelectorAll('[data-t]').forEach(el => {
+        const key = el.getAttribute('data-t');
+        if (dict[key]) el.innerHTML = dict[key];
+      });
+      document.querySelectorAll('[data-t-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-t-placeholder');
+        if (dict[key]) el.placeholder = dict[key];
+      });
+      // Update examples text if they exist
+      initTranslatedExamples();
+    }
+
+    function changeLanguage(lang) {
+      CURRENT_LANG = lang;
+      localStorage.setItem('venueflow_lang', lang);
+      translateUI();
+    }
+
+    // Initialize UI on load
+    document.getElementById('lang-select').value = CURRENT_LANG;
+    translateUI();
     const input = document.getElementById('main-input');
     const loading = document.getElementById('loading');
     const results = document.getElementById('results');
     const errorDiv = document.getElementById('error');
+    const errorText = document.getElementById('error-text');
 
     // Tab switching
     function switchTab(tab, e) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
       document.getElementById('tab-' + tab).classList.add('active');
-      e.target.classList.add('active');
-      e.target.setAttribute('aria-selected', 'true');
+      e.currentTarget.classList.add('active');
+      e.currentTarget.setAttribute('aria-selected', 'true');
       if (tab === 'feed') loadFeed();
     }
 
-    // Examples
-    function setExamples(examples) {
+    // Examples mapping with lucide icons
+    const RAW_EXAMPLES = [
+      { label_en: 'Gate Crowd (Hi)', label_hi: 'गेट की भीड़', label_te: 'గేట్ రద్దీ', label_ta: 'கேட் கூட்டம்', label_kn: 'ಗೇಟ್ ಭೀಡು', label_mr: 'गेटवरील गर्दी', icon: 'users', text: 'bhai gate 3 pe bahut bheed hai, 30 minute se khade hain. gate 5 bilkul khaali hai wahan se jao. security check bhi fast hai udhar.' },
+      { label_en: 'Food Queue', label_hi: 'खाने की कतार', label_te: 'ఆహార క్యూ', label_ta: 'உணவு வரிசை', label_kn: 'ಆಹಾರದ ಸರತಿ', label_mr: 'जेवणाची रांग', icon: 'utensils', text: 'Food court 2 near east stand is insanely packed, waited 25 mins still not at counter. Any faster options? Need to get back before innings starts.' },
+      { label_en: 'Parking Chaos', label_hi: 'पार्किंग की अव्यवस्था', label_te: 'పార్కిಂಗ್ గందరగೋಳం', label_ta: 'பார்க்கிங் குழப்பம்', label_kn: 'ಪಾರ್ಕಿಂಗ್ ಗೊಂದಲ', label_mr: 'पार्किंगचा गोंधळ', icon: 'car', text: 'Parking lot A completely full, cars blocking the exit road. Lot C near Uppal side still has space. Autos available near gate 7 for those coming by road.' },
+      { label_en: 'Weather Alert (Te)', label_hi: 'मौसम की चेतावनी', label_te: 'వాతావరణ హెచ్చరిక', label_ta: 'வானிலை எச்சரிக்கை', label_kn: 'ಹವಾಮಾನ ಎಚ್ಚರಿಕೆ', label_mr: 'हवामानाचा इशारा', icon: 'cloud-lightning', text: 'స్టేడియంలో వర్షం మొదలైంది. ఈస్ట్ స్టాండ్ లో అందరూ తడుస్తున్నారు. కవర్డ్ సెక్షన్లకు వెళ్ళండి. వెస్ట్ స్టాండ్ లో చోటు ఉంది.' },
+      { label_en: 'Safety Concern', label_hi: 'सुरक्षा संबंधी चिंता', label_te: 'భద్రతా సమస్య', label_ta: 'பாதுகாப்பு கவலை', label_kn: 'ಭದ್ರತೆಯ ಕಾಳಜಿ', label_mr: 'सुरक्षेची काळजी', icon: 'shield-alert', text: 'Too many people pushing at Gate D after match ended. Feels unsafe, almost like a stampede situation. Security not managing the flow.' },
+    ];
+    let EXAMPLES = [];
+
+    function initTranslatedExamples() {
       const row = document.getElementById('examples-row');
-      row.innerHTML = examples.map((ex, i) => `<button class="example-chip" onclick="loadExample(${i})">${ex.label}</button>`).join('');
-      examples.forEach(ex => EXAMPLES.push(ex.text));
+      EXAMPLES = RAW_EXAMPLES.map(ex => ex.text);
+      row.innerHTML = RAW_EXAMPLES.map((ex, i) => {
+        const label = ex['label_' + CURRENT_LANG] || ex.label_en;
+        return `
+          <button class="example-chip" onclick="loadExample(${i})">
+            <i data-lucide="${ex.icon}"></i> ${label}
+          </button>
+        `;
+      }).join('');
+      lucide.createIcons({ root: row });
     }
 
     function loadExample(i) { input.value = EXAMPLES[i]; input.focus(); }
     function clearAll() { input.value = ''; results.classList.remove('active'); loading.classList.remove('active'); errorDiv.classList.remove('active'); input.focus(); }
-    function showError(msg) { errorDiv.textContent = msg; errorDiv.classList.add('active'); }
+    function showError(msg) { errorText.textContent = msg; errorDiv.classList.add('active'); }
     function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 
     // Submit report
     async function submitReport() {
       const text = input.value.trim();
-      if (!text) { showError('Please describe what you see at the venue.'); return; }
+      const dict = TRANSLATIONS[CURRENT_LANG] || TRANSLATIONS.en;
+      if (!text) { showError(dict.error_empty); return; }
 
       errorDiv.classList.remove('active');
       results.classList.remove('active');
@@ -346,17 +768,28 @@
         const res = await fetch('/report', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ input: text })
+          body: JSON.stringify({ input: text, lang: CURRENT_LANG })
         });
         if (res.status === 429) { showError('Too many requests. Please wait.'); return; }
         const data = await res.json();
         if (data.error) { showError(data.error); return; }
         renderResults(data);
       } catch (e) {
-        showError('Network error. Please try again.');
+        showError(dict.error_network);
       } finally {
         loading.classList.remove('active');
         document.getElementById('report-btn').disabled = false;
+        // Visual success feedback
+        const submitIcon = document.querySelector('#report-btn i');
+        const originalIcon = submitIcon.getAttribute('data-lucide');
+        submitIcon.setAttribute('data-lucide', 'check-circle');
+        submitIcon.classList.add('success-check');
+        lucide.createIcons({ root: document.getElementById('report-btn') });
+        setTimeout(() => {
+          submitIcon.setAttribute('data-lucide', originalIcon);
+          submitIcon.classList.remove('success-check');
+          lucide.createIcons({ root: document.getElementById('report-btn') });
+        }, 3000);
       }
     }
 
@@ -364,46 +797,57 @@
     function renderResults(d) {
       const sev = d.severity || 'INFO';
       const banner = document.getElementById('result-banner');
-      banner.className = `result-banner sev-${sev}`;
+      banner.className = `result-banner banner-sev-${sev}`;
+      
+      let sevIcon = 'info';
+      if(sev === 'CRITICAL') sevIcon = 'alert-triangle';
+      if(sev === 'HIGH') sevIcon = 'siren';
+      if(sev === 'MODERATE') sevIcon = 'alert-circle';
+      if(sev === 'LOW') sevIcon = 'check-circle';
+
       banner.innerHTML = `
         <div class="result-header">
-          <span class="badge sev">${esc(sev)}</span>
-          <span class="badge type-badge">${esc(d.report_type || 'GENERAL')}</span>
-          ${d.crowd_density && d.crowd_density !== 'UNKNOWN' ? `<span class="badge type-badge">👥 ${esc(d.crowd_density)}</span>` : ''}
-          ${d._meta?.cached ? '<span class="meta-cached">CACHED</span>' : ''}
-          ${d._meta?.response_language && d._meta.response_language !== 'en' ? `<span class="badge type-badge">🌐 ${esc(d._meta.response_language)}</span>` : ''}
+          <span class="badge sev"><i data-lucide="${sevIcon}"></i> ${esc(sev)}</span>
+          <span class="badge type-badge"><i data-lucide="tag"></i> ${esc(d.report_type || 'GENERAL')}</span>
+          ${d.crowd_density && d.crowd_density !== 'UNKNOWN' ? `<span class="badge type-badge"><i data-lucide="users"></i> ${esc(d.crowd_density)}</span>` : ''}
+          ${d._meta?.cached ? `<span class="meta-cached">CACHED</span>` : ''}
+          ${d._meta?.response_language && d._meta.response_language !== 'en' ? `<span class="badge type-badge"><i data-lucide="languages"></i> ${esc(d._meta.response_language)}</span>` : ''}
         </div>
         <h2>${esc(d.title)}</h2>
         <p>${esc(d.summary)}</p>
-        ${d.location_in_venue ? `<p style="margin-top:4px;color:var(--accent);font-size:0.84rem;">📍 ${esc(d.location_in_venue)}</p>` : ''}`;
+        ${d.location_in_venue ? `<div class="loc-text"><i data-lucide="map-pin"></i> ${esc(d.location_in_venue)}</div>` : ''}
+      `;
 
       let cards = '';
 
       if (d.recommended_actions?.length) {
-        cards += `<div class="card"><h3>⚡ What To Do</h3><ul>${d.recommended_actions.map(a => `<li>${esc(a)}</li>`).join('')}</ul></div>`;
+        cards += `<div class="result-card-item"><h3><i data-lucide="zap"></i> What To Do</h3><ul>${d.recommended_actions.map(a => `<li>${esc(a)}</li>`).join('')}</ul></div>`;
       }
       if (d.alternative_suggestions?.length) {
-        cards += `<div class="card"><h3>🔄 Better Alternatives</h3><ul>${d.alternative_suggestions.map(a => `<li>${esc(a)}</li>`).join('')}</ul></div>`;
+        cards += `<div class="result-card-item"><h3><i data-lucide="shuffle"></i> Better Alternatives</h3><ul>${d.alternative_suggestions.map(a => `<li>${esc(a)}</li>`).join('')}</ul></div>`;
       }
       if (d.key_insights?.length) {
-        cards += `<div class="card"><h3>🔍 Key Insights</h3><ul>${d.key_insights.map(k => `<li>${esc(k)}</li>`).join('')}</ul></div>`;
+        cards += `<div class="result-card-item"><h3><i data-lucide="search"></i> Key Insights</h3><ul>${d.key_insights.map(k => `<li>${esc(k)}</li>`).join('')}</ul></div>`;
       }
       if (d.safety_alert) {
         const sa = d.safety_alert;
         const cls = sa.is_safety_concern ? 'safety-card' : 'safety-card safe';
-        const icon = sa.is_safety_concern ? '🚨' : '✅';
+        const icon = sa.is_safety_concern ? 'siren' : 'shield-check';
         const label = sa.is_safety_concern ? 'SAFETY CONCERN' : 'NO SAFETY ISSUES';
-        cards += `<div class="card ${cls}"><h3>${icon} ${label}</h3><p style="font-size:0.88rem">${esc(sa.details)}</p></div>`;
+        cards += `<div class="result-card-item card-full ${cls}"><h3><i data-lucide="${icon}"></i> ${label}</h3><p style="font-size:0.95rem;color:var(--text-muted);margin-top:10px;">${esc(sa.details)}</p></div>`;
       }
 
       document.getElementById('card-grid').innerHTML = cards;
 
       const meta = d._meta || {};
       document.getElementById('meta-row').innerHTML = `
-        <div class="meta-item"><strong>Wait Time</strong>${esc(d.wait_time_estimate || 'N/A')}</div>
-        <div class="meta-item"><strong>Event Phase</strong>${esc(d.event_phase_relevance || 'ANY')}</div>
-        <div class="meta-item"><strong>Confidence</strong>${esc(d.confidence || 'MEDIUM')}</div>
-        <div class="meta-item"><strong>Processing</strong>${meta.processing_time_sec || '—'}s · ${esc(meta.response_language || 'en')}</div>`;
+        <div class="meta-item"><strong>Wait Time Estimate</strong><span>${esc(d.wait_time_estimate || 'N/A')}</span></div>
+        <div class="meta-item"><strong>Event Phase</strong><span>${esc(d.event_phase_relevance || 'ANY')}</span></div>
+        <div class="meta-item"><strong>AI Confidence</strong><span>${esc(d.confidence || 'MEDIUM')}</span></div>
+        <div class="meta-item"><strong>Proc. Time</strong><span>${meta.processing_time_sec || '—'}s</span></div>`;
+
+      // re-init icons for the newly injected HTML
+      lucide.createIcons({ root: results });
 
       results.classList.add('active');
       results.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -412,38 +856,67 @@
     // Live feed
     async function loadFeed() {
       const container = document.getElementById('feed-container');
-      container.innerHTML = '<div class="feed-empty">Loading reports...</div>';
+      const dict = TRANSLATIONS[CURRENT_LANG] || TRANSLATIONS.en;
+      
+      // Skeleton loader
+      container.innerHTML = `
+        <div class="feed-grid">
+          ${[1,2,3].map(() => `
+            <div class="feed-item skeleton" style="height: 100px; border:none; opacity: 0.5;"></div>
+          `).join('')}
+        </div>
+      `;
+
       try {
-        const res = await fetch('/feed?limit=20');
+        const res = await fetch(`/feed?limit=20&lang=${CURRENT_LANG}`);
         const data = await res.json();
-        if (!data.reports?.length) { container.innerHTML = '<div class="feed-empty">No reports yet. Be the first to submit!</div>'; return; }
-        container.innerHTML = data.reports.map(r => `
-          <div class="feed-item">
-            <div class="feed-header">
-              <span class="feed-title">${esc(r.title || r.report_type || 'Report')}</span>
-              <span class="feed-time">${esc((r.timestamp || '').slice(11, 16))}</span>
+        if (!data.reports?.length) { 
+          container.innerHTML = `
+            <div class="feed-empty">
+              <i data-lucide="inbox"></i>
+              <div>${dict.feed_empty}</div>
+            </div>`; 
+          lucide.createIcons({ root: container });
+          return; 
+        }
+        
+        container.innerHTML = '<div class="feed-grid">' + data.reports.map(r => {
+          let sevColor = 'var(--info)';
+          if(r.severity === 'CRITICAL') sevColor = 'var(--critical)';
+          if(r.severity === 'HIGH') sevColor = 'var(--high)';
+          if(r.severity === 'MODERATE') sevColor = 'var(--moderate)';
+          if(r.severity === 'LOW') sevColor = 'var(--low)';
+
+          return `
+          <div class="feed-item" style="--sev-color: ${sevColor}">
+            <div class="f-head">
+              <span class="f-title">${esc(r.title || r.report_type || 'Report')}</span>
+              <span class="f-time"><i data-lucide="clock" style="width:12px;height:12px;"></i> ${esc((r.timestamp || '').slice(11, 16))}</span>
             </div>
-            <div class="feed-location">📍 ${esc(r.location_in_venue || 'Unknown')}</div>
-            <div style="margin-top:6px;display:flex;gap:6px;">
-              <span class="badge sev" style="background:var(--${(r.severity||'info').toLowerCase()});color:#fff;font-size:0.65rem;">${esc(r.severity)}</span>
+            <div class="f-loc"><i data-lucide="map-pin" style="width:14px;height:14px;"></i> ${esc(r.location_in_venue || 'Unknown')}</div>
+            <div class="f-tags">
+              <span class="badge sev" style="background:${sevColor};color:#111;font-size:0.65rem;">${esc(r.severity)}</span>
               <span class="badge type-badge" style="font-size:0.65rem;">${esc(r.report_type)}</span>
             </div>
           </div>
-        `).join('');
-      } catch (e) { container.innerHTML = '<div class="feed-empty">Failed to load feed.</div>'; }
+        `}).join('') + '</div>';
+        
+        lucide.createIcons({ root: container });
+      } catch (e) { 
+        container.innerHTML = `
+          <div class="feed-empty" style="color:var(--critical); border-color:rgba(239,68,68,0.3)">
+            <i data-lucide="wifi-off"></i>
+            <div>${dict.feed_fail}</div>
+          </div>`; 
+        lucide.createIcons({ root: container });
+      }
     }
 
     // Keyboard shortcut
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) submitReport(); });
 
     // Init examples
-    setExamples([
-      { label: '🏟️ Gate Crowd (Hindi)', text: 'bhai gate 3 pe bahut bheed hai, 30 minute se khade hain. gate 5 bilkul khaali hai wahan se jao. security check bhi fast hai udhar.' },
-      { label: '🍔 Food Queue', text: 'Food court 2 near east stand is insanely packed, waited 25 mins still not at counter. Any faster options? Need to get back before innings starts.' },
-      { label: '🅿️ Parking Chaos', text: 'Parking lot A completely full, cars blocking the exit road. Lot C near Uppal side still has space. Autos available near gate 7 for those coming by road.' },
-      { label: '🌧️ Weather Alert (Telugu)', text: 'స్టేడియంలో వర్షం మొదలైంది. ఈస్ట్ స్టాండ్ లో అందరూ తడుస్తున్నారు. కవర్డ్ సెక్షన్లకు వెళ్ళండి. వెస్ట్ స్టాండ్ లో చోటు ఉంది.' },
-      { label: '🚨 Safety Concern', text: 'Too many people pushing at Gate D after match ended. Feels unsafe, almost like a stampede situation. Security not managing the flow. People with kids struggling. Need help urgently.' },
-    ]);
+    initTranslatedExamples();
   </script>
 </body>
 </html>

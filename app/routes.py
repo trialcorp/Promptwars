@@ -49,13 +49,14 @@ def submit_report() -> tuple[FlaskResponse, int] | FlaskResponse:
 
     data: dict = request.get_json(silent=True) or {}
     user_input: str = sanitize_input(data.get("input", ""))
+    target_lang: str | None = data.get("lang")
 
     if not user_input:
         return jsonify({"error": "Please describe what you're seeing at the venue."}), 400
     if len(user_input) > Config.MAX_INPUT_LENGTH:
         return jsonify({"error": f"Input too long. Max {Config.MAX_INPUT_LENGTH} characters."}), 400
 
-    result, is_cached = process_report(user_input)
+    result, is_cached = process_report(user_input, target_lang=target_lang)
 
     if "error" in result and not is_cached:
         return jsonify(result), 503
@@ -91,7 +92,15 @@ def live_feed() -> FlaskResponse:
     except (ValueError, TypeError):
         limit = DEFAULT_FEED_LIMIT
 
+    target_lang = request.args.get("lang")
     reports = get_recent_reports(limit)
+
+    if target_lang and target_lang != "en" and TRANSLATE_AVAILABLE:
+        translated_reports = []
+        for r in reports:
+            translated_reports.append(translate_json_values(r, target_lang))
+        reports = translated_reports
+
     return jsonify({"reports": reports, "count": len(reports)})
 
 

@@ -18,6 +18,7 @@ def create_app() -> Flask:
     """Create and configure the Flask application."""
     flask_app = Flask(__name__, template_folder="../templates")
     flask_app.config["MAX_CONTENT_LENGTH"] = Config.MAX_REQUEST_SIZE
+    flask_app.config["TEMPLATES_AUTO_RELOAD"] = True
 
     # Security middleware
     flask_app.after_request(apply_security_headers)

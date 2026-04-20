@@ -25,7 +25,7 @@ from app.services.translate import (
 )
 
 
-def process_report(user_input: str) -> tuple[dict[str, Any], bool]:
+def process_report(user_input: str, target_lang: str | None = None) -> tuple[dict[str, Any], bool]:
     """Process a crowd report through the full analysis pipeline.
 
     Steps:
@@ -33,7 +33,7 @@ def process_report(user_input: str) -> tuple[dict[str, Any], bool]:
         2. Check cache
         3. Translate to English (if needed)
         4. AI analysis (always in English)
-        5. Translate response back to user's language
+        5. Translate response to target language (provided or detected)
         6. Add language metadata
         7. Cache the result
         8. Persist to Cloud Storage
@@ -41,6 +41,7 @@ def process_report(user_input: str) -> tuple[dict[str, Any], bool]:
 
     Args:
         user_input: Raw crowd report text from the user.
+        target_lang: Explicitly requested response language (ISO 639-1).
 
     Returns:
         A tuple of ``(result_dict, is_cached)``.
@@ -69,14 +70,15 @@ def process_report(user_input: str) -> tuple[dict[str, Any], bool]:
     if "error" in result:
         return result, False
 
-    # Step 5: Translate entire response back to user's language
-    if detected_lang != "en" and TRANSLATE_AVAILABLE:
-        result = translate_json_values(result, detected_lang)
-        logger.info("Response translated en → %s", detected_lang)
+    # Step 5: Translate response back to user's language (preferring target_lang if provided)
+    final_lang = target_lang or detected_lang
+    if final_lang != "en" and TRANSLATE_AVAILABLE:
+        result = translate_json_values(result, final_lang)
+        logger.info("Response translated en → %s", final_lang)
 
     # Step 6: Add language metadata
     result.setdefault("_meta", {})["detected_language"] = detected_lang
-    result["_meta"]["response_language"] = detected_lang
+    result["_meta"]["response_language"] = final_lang
 
     # Step 7: Cache the translated result
     cache_set(key, result)
